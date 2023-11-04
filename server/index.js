@@ -6,8 +6,17 @@ const listsFilePath = path.join(__dirname, 'superhero_lists.json');
 
 const app = express();
 const port = 3000;
+
+
+
+
+
+app.use('/', express.static('../client'));
+
+
 //More middleware for json parsing
 app.use(express.json());
+
 
 //Set up middleware
 app.use((req, res, next) => {
@@ -312,6 +321,90 @@ app.delete('/api/superhero_lists/:listName', (req, res) => {
                 // List not found
                 res.status(404).send(`List named ${listName} does not exist.`);
             }
+        } catch (parseError) {
+            console.error(parseError);
+            res.status(500).send('An error occurred while parsing the lists JSON data.');
+        }
+    });
+});
+
+
+app.get('/api/superhero_lists/:listName/details', (req, res) => {
+    const listName = req.params.listName;
+
+    // Read the superhero lists file
+    fs.readFile('./superhero_lists.json', 'utf8', (listsErr, listsData) => {
+        if (listsErr) {
+            console.error(listsErr);
+            return res.status(500).send('An error occurred while reading the lists JSON file.');
+        }
+
+        try {
+            const lists = JSON.parse(listsData);
+            const list = lists.find(l => l.name === listName);
+
+            if (!list) {
+                return res.status(404).send(`List named ${listName} not found.`);
+            }
+
+            // Read the superhero info file
+            fs.readFile('./superhero_info.json', 'utf8', (infoErr, infoData) => {
+                if (infoErr) {
+                    console.error(infoErr);
+                    return res.status(500).send('An error occurred while reading the info JSON file.');
+                }
+
+                try {
+                    const heroes = JSON.parse(infoData);
+
+                    // Read the superhero powers file
+                    fs.readFile('./superhero_powers.json', 'utf8', (powersErr, powersData) => {
+                        if (powersErr) {
+                            console.error(powersErr);
+                            return res.status(500).send('An error occurred while reading the powers JSON file.');
+                        }
+
+                        try {
+                            const powersList = JSON.parse(powersData);
+
+                            // Combine the heroes' info and powers based on IDs
+                            const listDetails = list.heroes.map(heroId => {
+                                const hero = heroes.find(h => h.id === heroId);
+                                if (hero) {
+                                    const heroPowersEntry = powersList.find(p => p.hero_names === hero.name);
+                                    let heroPowers = {};
+
+                                    if (heroPowersEntry) {
+                                        heroPowers = Object.entries(heroPowersEntry)
+                                            .reduce((obj, [key, value]) => {
+                                                if (value === "True") {
+                                                    obj[key] = true;
+                                                }
+                                                return obj;
+                                            }, {});
+                                    }
+
+                                    return {
+                                        id: hero.id,
+                                        name: hero.name,
+                                        information: hero,
+                                        powers: heroPowers
+                                    };
+                                }
+                                return null;
+                            }).filter(h => h !== null); // Filter out any nulls
+
+                            res.json(listDetails);
+                        } catch (parseError) {
+                            console.error(parseError);
+                            res.status(500).send('An error occurred while parsing the powers JSON data.');
+                        }
+                    });
+                } catch (parseError) {
+                    console.error(parseError);
+                    res.status(500).send('An error occurred while parsing the info JSON data.');
+                }
+            });
         } catch (parseError) {
             console.error(parseError);
             res.status(500).send('An error occurred while parsing the lists JSON data.');

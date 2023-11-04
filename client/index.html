@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superhero Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Superhero Finder</h1>
+        <div id="search-area">
+            <select id="search-field">
+                <option value="name">Name</option>
+                <option value="power">Power</option>
+                <option value="publisher">Publisher</option>
+                <option value="race">Race</option>
+            </select>
+            <input type="search" id="search-box" placeholder="Search...">
+            <button id="search-btn">Search</button>
+        </div>
+    </header>
+    
+    <main>
+        <section id="list-actions">
+            <h2>Lists</h2>
+            <input type="text" id="list-name" placeholder="New List Name">
+            <button id="create-list-btn">Create List</button>
+            <div id="list-container">
+                <!-- Lists will be displayed here -->
+            </div>
+        </section>
+        
+        <section id="results">
+            <h2>Search Results</h2>
+            <!-- Search results will be displayed here -->
+        </section>
+    </main>
+    
+    <footer>
+        <!-- Footer content -->
+    </footer>
+
+    <script src="scripts.js"></script> <!-- Link to your JavaScript file -->
+</body>
+</html>
