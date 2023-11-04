@@ -1,16 +1,21 @@
 const express = require('express');
-const fs = require('fs'); // Filesystem module to read files
+const fs = require('fs'); 
 
+const path = require('path');
+const listsFilePath = path.join(__dirname, 'superhero_lists.json');
 
 const app = express();
 const port = 3000;
-
+//More middleware for json parsing
+app.use(express.json());
 
 //Set up middleware
 app.use((req, res, next) => {
     console.log(`${req.method} request for ${req.url}`);
     next();
 })
+
+
 
 // Send JSON file for the first route
 app.get('/api/superhero_info', (req, res) => {
@@ -106,7 +111,8 @@ app.get('/api/publishers', (req, res) => {
     });
 });
 
-app.get('/api/search/:field/:pattern/:n?', (req, res) => {
+//Search for ids with given field/search term/ and number of results
+app.get('/api/superhero_info/:field/:pattern/:n?', (req, res) => {
     const { field, pattern, n } = req.params;
     const numResults = n ? parseInt(n, 10) : Infinity; // Use Infinity when n is not provided
 
@@ -137,11 +143,11 @@ app.get('/api/search/:field/:pattern/:n?', (req, res) => {
 });
 
 
-const path = require('path');
 
-const listsFilePath = path.join(__dirname, 'superhero_lists.json');
 
-app.post('/api/lists/:listName', (req, res) => {
+
+//Create a List if the list name doesn't exist, creates a json file if it doesn't exist
+app.post('/api/superhero_lists/:listName', (req, res) => {
     const newListName = req.params.listName;
 
     // First, check if the superhero_lists.json file exists
@@ -201,8 +207,81 @@ app.post('/api/lists/:listName', (req, res) => {
 });
 
 
+//Puts the given id's into the list only if that list exists
+app.put('/api/superhero_lists/:listName', (req, res) => {
+
+    const listName = req.params.listName;
+
+    const superheroIds = req.body.superheroIds; 
+
+    // Check if the superhero_lists.json file exists
+    fs.readFile(listsFilePath, 'utf8', (readErr, data) => {
+        if (readErr) {
+            // If the file does not exist or can't be read, we assume the list does not exist
+            console.error(readErr);
+            return res.status(404).send(`The list named "${listName}" does not exist.`);
+        }
+        
+        try {
+            let lists = JSON.parse(data);
+
+            // Find the index of the list with the given name
+            const listIndex = lists.findIndex(list => list.name === listName);
+
+            if (listIndex === -1) {
+                // The list name does not exist
+                return res.status(404).send(`The list named "${listName}" does not exist.`);
+            }
+
+            // Replace existing superhero IDs with new values
+            lists[listIndex].heroes = superheroIds;
+
+            // Write the updated data back to the file
+            fs.writeFile(listsFilePath, JSON.stringify(lists, null, 2), 'utf8', (writeErr) => {
+                if (writeErr) {
+                    console.error(writeErr);
+                    return res.status(500).send('An error occurred while writing to the superhero lists JSON file.');
+                }
+                res.status(200).send(`Superhero IDs updated successfully in list "${listName}".`);
+            });
+            
+        } catch (parseError) {
+            console.error(parseError);
+            res.status(500).send('An error occurred while parsing the superhero lists JSON data.');
+        }
+    });
+});
+
+// Get ids from a given list
+app.get('/api/superhero_lists/:listName', (req, res) => {
+    const listName = req.params.listName;
+    
+    // Read the superhero lists file
+    fs.readFile('./superhero_lists.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('An error occurred while reading the lists JSON file.');
+        }
+  
+        try {
+            const lists = JSON.parse(data);
+            // Find the list by name
+            const listObject = lists.find(list => list.name === listName);
+  
+            if (listObject) {
+                res.json(listObject.heroes); // Return the list of IDs
+            } else {
+                res.status(404).send(`List named ${listName} not found.`);
+            }
+        } catch (parseError) {
+            console.error(parseError);
+            res.status(500).send('An error occurred while parsing the lists JSON data.');
+        }
+    });
+});
 
 
+  
 
 
 
