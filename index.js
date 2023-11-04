@@ -106,6 +106,39 @@ app.get('/api/publishers', (req, res) => {
     });
 });
 
+app.get('/api/search/:field/:pattern/:n?', (req, res) => {
+    const { field, pattern, n } = req.params;
+    const numResults = n ? parseInt(n, 10) : Infinity; // Use Infinity when n is not provided
+
+    fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('An error occurred while reading the superhero info JSON file.');
+        }
+        try {
+            const heroes = JSON.parse(data);
+            // Filter heroes by pattern in the specified field
+            const matches = heroes.filter(hero => {
+                const fieldValue = hero[field];
+                // We check if fieldValue exists and if it matches the pattern
+                return fieldValue && new RegExp(pattern, 'i').test(fieldValue);
+            });
+
+            // Limit the number of results if needed
+            const limitedResults = matches.slice(0, numResults);
+            const ids = limitedResults.map(match => match.id); // Assuming each hero object has an 'id' field
+
+            res.json(ids);
+        } catch (parseError) {
+            console.error(parseError);
+            res.status(500).send('An error occurred while parsing the superhero info JSON data.');
+        }
+    });
+});
+
+
+
+
 
 
 
