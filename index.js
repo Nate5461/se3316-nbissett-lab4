@@ -281,7 +281,45 @@ app.get('/api/superhero_lists/:listName', (req, res) => {
 });
 
 
-  
+// Delete a list with a given name
+app.delete('/api/superhero_lists/:listName', (req, res) => {
+    const listName = req.params.listName;
+
+    // Read the superhero lists file
+    fs.readFile('./superhero_lists.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('An error occurred while reading the lists JSON file.');
+        }
+
+        try {
+            let lists = JSON.parse(data);
+            const listIndex = lists.findIndex(list => list.name === listName);
+
+            if (listIndex > -1) {
+                // Remove the list from the array
+                lists.splice(listIndex, 1);
+
+                // Write the updated array back to the file
+                fs.writeFile('./superhero_lists.json', JSON.stringify(lists, null, 2), (writeErr) => {
+                    if (writeErr) {
+                        console.error(writeErr);
+                        return res.status(500).send('An error occurred while writing to the lists JSON file.');
+                    }
+                    res.status(200).send(`List named ${listName} was deleted successfully.`);
+                });
+            } else {
+                // List not found
+                res.status(404).send(`List named ${listName} does not exist.`);
+            }
+        } catch (parseError) {
+            console.error(parseError);
+            res.status(500).send('An error occurred while parsing the lists JSON data.');
+        }
+    });
+});
+
+
 
 
 
