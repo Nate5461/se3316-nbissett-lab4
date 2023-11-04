@@ -137,6 +137,70 @@ app.get('/api/search/:field/:pattern/:n?', (req, res) => {
 });
 
 
+const path = require('path');
+
+const listsFilePath = path.join(__dirname, 'superhero_lists.json');
+
+app.post('/api/lists/:listName', (req, res) => {
+    const newListName = req.params.listName;
+
+    // First, check if the superhero_lists.json file exists
+    fs.access(listsFilePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            // The file does not exist, so we create a new one with the new list
+            const lists = [{
+                name: newListName,
+                heroes: [] // Start with an empty list of heroes
+            }];
+
+            fs.writeFile(listsFilePath, JSON.stringify(lists, null, 2), 'utf8', (writeErr) => {
+                if (writeErr) {
+                    console.error(writeErr);
+                    return res.status(500).send('An error occurred while creating the superhero lists JSON file.');
+                }
+                return res.status(201).send(`New list named "${newListName}" created successfully.`);
+            });
+        } else {
+            // The file exists, so we read it and then proceed
+            fs.readFile(listsFilePath, 'utf8', (readErr, data) => {
+                if (readErr) {
+                    console.error(readErr);
+                    return res.status(500).send('An error occurred while reading the superhero lists JSON file.');
+                }
+                
+                try {
+                    const lists = JSON.parse(data);
+
+                    // Check if the list name already exists
+                    if (lists.some(list => list.name === newListName)) {
+                        return res.status(409).send(`The list named "${newListName}" already exists.`);
+                    }
+
+                    // If the list name does not exist, create a new list
+                    lists.push({
+                        name: newListName,
+                        heroes: [] // Start with an empty list of heroes
+                    });
+
+                    // Save the updated lists back to the file
+                    fs.writeFile(listsFilePath, JSON.stringify(lists, null, 2), 'utf8', (writeErr) => {
+                        if (writeErr) {
+                            console.error(writeErr);
+                            return res.status(500).send('An error occurred while writing to the superhero lists JSON file.');
+                        }
+                        res.status(201).send(`New list named "${newListName}" created successfully.`);
+                    });
+                    
+                } catch (parseError) {
+                    console.error(parseError);
+                    res.status(500).send('An error occurred while parsing the superhero lists JSON data.');
+                }
+            });
+        }
+    });
+});
+
+
 
 
 
