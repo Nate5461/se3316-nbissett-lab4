@@ -43,7 +43,7 @@ app.get('/api/superhero_powers', (req, res) => {
 //Get all superhero information
 app.get('/api/superhero_info/:id', (req, res) => {
     const heroId = parseInt(req.params.id, 10); // Parse the id to an integer, if necessary
-    fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
+    fs.readFile('../superhero_info.json', 'utf8', (err, data) => {
         try {
             const heroes = JSON.parse(data); // Parse the JSON data
             const hero = heroes.find(h => h.id === heroId); // Find the hero with the matching ID
@@ -63,12 +63,12 @@ app.get('/api/superhero_info/:id', (req, res) => {
 //Get all hero Powers 
 app.get('/api/superhero_powers/:id', (req, res) => {
     const heroId = parseInt(req.params.id, 10);
-    fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
+    fs.readFile('../superhero_info.json', 'utf8', (err, data) => {
         try {
             const heroes = JSON.parse(data);
             const hero = heroes.find(h => h.id === heroId);
             if (hero) {
-                fs.readFile('./superhero_powers.json', 'utf8', (err, data) => {
+                fs.readFile('../superhero_powers.json', 'utf8', (err, data) => {
                     try {
                         const powersList = JSON.parse(data);
                         const heroPowersEntry = powersList.find(p => p.hero_names === hero.name);
@@ -102,7 +102,7 @@ app.get('/api/superhero_powers/:id', (req, res) => {
 
 //Get all unique publishers
 app.get('/api/publishers', (req, res) => {
-    fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
+    fs.readFile('../superhero_info.json', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             return res.status(500).send('An error occurred while reading the superhero info JSON file.');
@@ -125,7 +125,7 @@ app.get('/api/superhero_info/:field/:pattern/:n?', (req, res) => {
     const { field, pattern, n } = req.params;
     const numResults = n ? parseInt(n, 10) : Infinity; // Use Infinity when n is not provided
 
-    fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
+    fs.readFile('../superhero_info.json', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             return res.status(500).send('An error occurred while reading the superhero info JSON file.');
@@ -266,7 +266,7 @@ app.get('/api/superhero_lists/:listName', (req, res) => {
     const listName = req.params.listName;
     
     // Read the superhero lists file
-    fs.readFile('./superhero_lists.json', 'utf8', (err, data) => {
+    fs.readFile('../superhero_lists.json', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             return res.status(500).send('An error occurred while reading the lists JSON file.');
@@ -295,7 +295,7 @@ app.delete('/api/superhero_lists/:listName', (req, res) => {
     const listName = req.params.listName;
 
     // Read the superhero lists file
-    fs.readFile('./superhero_lists.json', 'utf8', (err, data) => {
+    fs.readFile('../superhero_lists.json', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
             return res.status(500).send('An error occurred while reading the lists JSON file.');
@@ -310,7 +310,7 @@ app.delete('/api/superhero_lists/:listName', (req, res) => {
                 lists.splice(listIndex, 1);
 
                 // Write the updated array back to the file
-                fs.writeFile('./superhero_lists.json', JSON.stringify(lists, null, 2), (writeErr) => {
+                fs.writeFile('../superhero_lists.json', JSON.stringify(lists, null, 2), (writeErr) => {
                     if (writeErr) {
                         console.error(writeErr);
                         return res.status(500).send('An error occurred while writing to the lists JSON file.');
@@ -333,7 +333,7 @@ app.get('/api/superhero_lists/:listName/details', (req, res) => {
     const listName = req.params.listName;
 
     // Read the superhero lists file
-    fs.readFile('./superhero_lists.json', 'utf8', (listsErr, listsData) => {
+    fs.readFile('../superhero_lists.json', 'utf8', (listsErr, listsData) => {
         if (listsErr) {
             console.error(listsErr);
             return res.status(500).send('An error occurred while reading the lists JSON file.');
@@ -348,7 +348,7 @@ app.get('/api/superhero_lists/:listName/details', (req, res) => {
             }
 
             // Read the superhero info file
-            fs.readFile('./superhero_info.json', 'utf8', (infoErr, infoData) => {
+            fs.readFile('../superhero_info.json', 'utf8', (infoErr, infoData) => {
                 if (infoErr) {
                     console.error(infoErr);
                     return res.status(500).send('An error occurred while reading the info JSON file.');
@@ -358,7 +358,7 @@ app.get('/api/superhero_lists/:listName/details', (req, res) => {
                     const heroes = JSON.parse(infoData);
 
                     // Read the superhero powers file
-                    fs.readFile('./superhero_powers.json', 'utf8', (powersErr, powersData) => {
+                    fs.readFile('../superhero_powers.json', 'utf8', (powersErr, powersData) => {
                         if (powersErr) {
                             console.error(powersErr);
                             return res.status(500).send('An error occurred while reading the powers JSON file.');
