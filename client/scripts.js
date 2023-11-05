@@ -1,7 +1,8 @@
 
+
 const searchHeros = async (searchField, searchTerm) => {
     try {
-        const response = await fetch(`/api/superhero_info/${searchField}/${searchTerm}/50`);
+        const response = await fetch(`/api/superhero_info/${searchField}/${searchTerm}`);
         if (response.ok) {
             const heros = await response.json();
             return heros;
@@ -31,35 +32,78 @@ const fetchHero = async (id) =>{
     }
 };
 
+const searchPowers = async (power) =>{
+    try{
+        const response = await fetch (`/api/superhero_powers/${power}`);
+        if (response.ok) {
+            const heros = await response.json();
+            return heros;
+        } else {
+            console.error('Error:', error);
+            return [];
+        }
+    } catch(error){
+        console.error('Error:', error);
+        return[];
+    }
+}
+
 document.getElementById('search-btn').addEventListener('click', function() {
     const searchTerm = document.getElementById('search-box').value;
     const searchField = document.getElementById('search-field').value;
-    searchHeros(searchField, searchTerm) // Pass the searchTerm to the fetchHero function
-    .then(data => {
-        const display = document.getElementById('results');
-        display.innerHTML = ''; // Clear previous results
-        if(data.length === 0) {
-            display.innerHTML = '<p>No superheroes found.</p>'; // Show message if no heroes found
-            return;
-        }
-        
-        const list = document.createElement('ul');
+    const display = document.getElementById('results');
+    display.innerHTML = ''; // Clear previous results
+    const msg = document.createElement('p');
+    const list = document.createElement('ul');
 
-        // Iterate over the data and create list items based on the searchField
-        data.forEach(hero => {
-            fetchHero(hero)
-            .then(info => {
-                const item = document.createElement('li');
-                item.textContent = `${info.name}`;
-                list.appendChild(item);
-            });
-            
+    if (searchField == 'power') {
+        searchPowers(searchTerm)
+        .then( names => {
+            if(names.length === 0) {
+                msg.textContent = 'No superheroes found.'; // Show message if no heroes found
+                display.appendChild(msg);
+                return;
+            } else {
+                names.forEach(name => {
+                    const item = document.createElement('li');
+                    item.textContent = `${name}`;
+                    list.appendChild(item);
+                });
+
+                display.appendChild(list); // Append the list to the display element
+                
+            }
         });
+    } else{
+        searchHeros(searchField, searchTerm) // Pass the searchTerm to the fetchHero function
+        .then(data => {
+          
+            if(data.length === 0) {
+                msg.textContent = 'No superheroes found.'; // Show message if no heroes found
+                display.appendChild(msg);
+                return;
+            } else {
 
-        display.appendChild(list); // Append the list to the display element
-    })
-    .catch(error => {
-        console.error('There was an issue displaying the heroes:', error);
-    });
+                // Iterate over the data and create list items based on the searchField
+                data.forEach(hero => {
+                    fetchHero(hero)
+                    .then(info => {
+                        const item = document.createElement('li');
+                        item.textContent = `${info.name}`;
+                        list.appendChild(item);
+                    });
+                
+                });
+
+                display.appendChild(list); // Append the list to the display element
+            }
+            
+            
+        })
+        .catch(error => {
+            console.error('There was an issue displaying the heroes:', error);
+        });
+    }
+    
 });
 

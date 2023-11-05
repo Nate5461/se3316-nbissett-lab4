@@ -60,6 +60,43 @@ app.get('/api/superhero_info/:id', (req, res) => {
 });
 
 
+
+// Get all hero names that have a superpower matching the search term (partial matches included)
+app.get('/api/superhero_powers/:power', (req, res) => {
+    const searchPower = req.params.power.toLowerCase();
+
+    fs.readFile('../superhero_powers.json', 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            return res.status(500).send('An error occurred while reading the superhero data.');
+        }
+        
+        try {
+            const heroesList = JSON.parse(data);
+            const heroesWithPower = heroesList
+                .filter(hero => {
+                    // Check for partial match in power keys
+                    return Object.keys(hero).some(key => 
+                        key.toLowerCase().includes(searchPower) && hero[key] === "True"
+                    );
+                })
+                .map(hero => hero.hero_names); // Get hero names
+
+            if (heroesWithPower.length === 0) {
+                return res.status(404).send('No heroes found with that power.');
+            }
+
+            res.json(heroesWithPower);
+        } catch (parseError) {
+            console.error('Error parsing JSON:', parseError);
+            res.status(500).send('An error occurred while parsing the superhero data.');
+        }
+    });
+});
+
+
+
+
 //Get all hero Powers 
 app.get('/api/superhero_powers/:id', (req, res) => {
     const heroId = parseInt(req.params.id, 10);
