@@ -14,6 +14,23 @@ h1 {
     margin-right: 20px;
 }
 
+/* Add styles for the two-column layout */
+#split-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#list-area {
+    flex: 1; /* Take up the available space on the left */
+    padding: 10px;
+    border-right: 1px solid #ddd; /* Add a border between the two columns */
+}
+
+#display-area {
+    flex: 1; /* Take up the available space on the right */
+    padding: 10px;
+}
+
 #search-area {
     display: flex;
 }
