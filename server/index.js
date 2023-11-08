@@ -360,7 +360,7 @@ app.get('/api/superhero_lists', (req, res) => {
 // Delete a list with a given name
 app.delete('/api/superhero_lists/:listName', (req, res) => {
     const listName = req.params.listName;
-
+    console.log('ran');
     // Read the superhero lists file
     fs.readFile('./superhero_lists.json', 'utf8', (err, data) => {
         if (err) {

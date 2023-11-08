@@ -9,6 +9,7 @@
 <body>
     <header>
         <h1>Superhero Finder</h1>
+
         <div id="search-area">
             <select id="search-field">
                 <option value="name">Name</option>
@@ -19,6 +20,7 @@
             <input type="search" id="search-box" placeholder="Search...">
             <button id="search-btn">Search</button>
         </div>
+
     </header>
     
     
@@ -27,8 +29,15 @@
             <h2>Lists</h2>
             <input type="text" id="list-name" placeholder="New List Name">
             <button id="create-list">Create List</button>
+            <button id="delete-list">Delete List</button>
             <select id="select-list"></select>
+            <select id="sort-dropdown">
+                <option value="name">Sort by Name</option>
+                <option value="race">Sort by Race</option>
+                <option value="publisher">Sort by Publisher</option>
+                <option value="power">Sort by Power</option>
 
+            </select>
         </section>
         
         <section id="split-container">
