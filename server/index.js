@@ -1,21 +1,27 @@
 const express = require('express');
 const fs = require('fs'); 
-
 const path = require('path');
+const rateLimit = require('express-rate-limit');
+
 const listsFilePath = './superhero_lists.json'
+const { check, validationResult } = require('express-validator');
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100000 // limit each IP to 1000 requests per windowMs
+});
 
 const app = express();
 const port = 3000;
 
-
-
-
+app.use(limiter);
 
 app.use('/', express.static('../client'));
 
-
 //More middleware for json parsing
 app.use(express.json());
+
+app.use(express.json({ limit: '1mb' })); 
 
 
 //Set up middleware
@@ -40,6 +46,8 @@ app.get('/api/superhero_powers', (req, res) => {
     });
 });
 
+
+/*
 //Get all superhero information
 app.get('/api/superhero_info/:id', (req, res) => {
     const heroId = parseInt(req.params.id, 10); // Parse the id to an integer, if necessary
@@ -55,14 +63,74 @@ app.get('/api/superhero_info/:id', (req, res) => {
         } catch (parseError) {
             console.error(parseError);
             res.status(500).send('An error occurred while parsing the JSON data.');
+        }in
+    });
+});
+*/
+
+app.get('/api/superhero_info/:id', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
+    const heroId = parseInt(req.params.id, 10); // Parse the id to an integer, if necessary
+
+    fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
+        try {
+            const heroes = JSON.parse(data); // Parse the JSON data
+            const hero = heroes.find(h => h.id === heroId); // Find the hero with the matching ID
+
+            if (hero) {
+                // Read the superhero powers file
+                fs.readFile('./superhero_powers.json', 'utf8', (powersErr, powersData) => {
+                    if (powersErr) {
+                        console.error(powersErr);
+                        return res.status(500).send('An error occurred while reading the powers JSON file.');
+                    }
+
+                    try {
+                        const powersList = JSON.parse(powersData);
+                        const heroPowersEntry = powersList.find(p => p.hero_names === hero.name);
+                        let heroPowers = {};
+
+                        if (heroPowersEntry) {
+                            heroPowers = Object.entries(heroPowersEntry)
+                                .reduce((obj, [key, value]) => {
+                                    if (value === "True") {
+                                        obj[key] = true;
+                                    }
+                                    return obj;
+                                }, {});
+                        }
+
+                        res.json({ ...hero, powers: heroPowers }); // Send the hero's info and powers
+                    } catch (parseError) {
+                        console.error(parseError);
+                        res.status(500).send('An error occurred while parsing the powers JSON data.');
+                    }
+                });
+            } else {
+                res.status(404).send(`Hero with ID ${heroId} not found.`); // Send a 404 if not found
+            }
+        } catch (parseError) {
+            console.error(parseError);
+            res.status(500).send('An error occurred while parsing the JSON data.');
         }
     });
 });
 
-
-
 // Get all hero names that have a superpower matching the search term (partial matches included)
 app.get('/api/superhero_powers/:power', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     const searchPower = req.params.power.toLowerCase();
 
     fs.readFile('./superhero_powers.json', 'utf8', (err, data) => {
@@ -99,6 +167,13 @@ app.get('/api/superhero_powers/:power', (req, res) => {
 
 //Get all hero Powers 
 app.get('/api/superhero_powers/:id', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     const heroId = parseInt(req.params.id, 10);
     fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
         try {
@@ -139,6 +214,13 @@ app.get('/api/superhero_powers/:id', (req, res) => {
 
 //Get all unique publishers
 app.get('/api/publishers', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     fs.readFile('./superhero_info.json', 'utf8', (err, data) => {
         if (err) {
             console.error(err);
@@ -159,6 +241,13 @@ app.get('/api/publishers', (req, res) => {
 
 //Search for ids with given field/search term/ and number of results
 app.get('/api/superhero_info/:field/:pattern/:n?', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     const { field, pattern, n } = req.params;
     const numResults = n ? parseInt(n, 10) : Infinity; // Use Infinity when n is not provided
 
@@ -194,6 +283,14 @@ app.get('/api/superhero_info/:field/:pattern/:n?', (req, res) => {
 
 //Create a List if the list name doesn't exist, creates a json file if it doesn't exist
 app.post('/api/superhero_lists/:listName', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
+
     const newListName = req.params.listName;
 
 
@@ -258,6 +355,12 @@ app.post('/api/superhero_lists/:listName', (req, res) => {
 //Puts the given id's into the list only if that list exists
 app.put('/api/superhero_lists/:listName', (req, res) => {
 
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     const listName = req.params.listName;
 
     const superheroIds = req.body.superheroIds; 
@@ -302,6 +405,14 @@ app.put('/api/superhero_lists/:listName', (req, res) => {
 
 // Get ids from a given list
 app.get('/api/superhero_lists/:listName', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
+
     const listName = req.params.listName;
     
     // Read the superhero lists file
@@ -330,6 +441,15 @@ app.get('/api/superhero_lists/:listName', (req, res) => {
 
 // Get all lists
 app.get('/api/superhero_lists', (req, res) => {
+
+    
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
+
     const listName = req.params.listName;
     
     // Read the superhero lists file
@@ -359,6 +479,13 @@ app.get('/api/superhero_lists', (req, res) => {
 
 // Delete a list with a given name
 app.delete('/api/superhero_lists/:listName', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     const listName = req.params.listName;
     console.log('ran');
     // Read the superhero lists file
@@ -397,6 +524,13 @@ app.delete('/api/superhero_lists/:listName', (req, res) => {
 
 
 app.get('/api/superhero_lists/:listName/details', (req, res) => {
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.arrary() });
+    }
+
     const listName = req.params.listName;
 
     // Read the superhero lists file

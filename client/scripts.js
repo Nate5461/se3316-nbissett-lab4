@@ -1,7 +1,32 @@
 let searchList = []
 
-populateListDropdown();
+startup();
 
+async function startup() {
+
+    console.log('Startup');
+    await populateListDropdown();
+
+    
+    const selectedList = document.getElementById('select-list').value
+
+    console.log('selected list: ' + selectedList);
+
+    loadHeroesForList(selectedList);
+    
+}
+
+function sanitizeInput(input) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+
+    return input.replace(/[&<>"']/g, function (m) { return map[m]; });
+}
 
 const searchHeros = async (searchField, searchTerm) => {
     try {
@@ -79,12 +104,12 @@ function createList(callback) {
         });
 }
 
+
+
 function createCharacterInfoItem(infoList, list) {
 
-        console.log('run 1')
     infoList.forEach(info => {
 
-        console.log("runs here" + info.name)
         // Create the main list item
         const item = document.createElement('li');
 
@@ -106,6 +131,11 @@ function createCharacterInfoItem(infoList, list) {
         const skinItem = document.createElement('li');
         const alignmentItem = document.createElement('li');
         const weightItem = document.createElement('li');
+        const powerItem = document.createElement('li');
+        const powersArray = Object.entries(info.powers)
+            .filter(([power, hasPower]) => hasPower)
+            .map(([power, hasPower]) => power);
+
 
         // Set the text content for each list item using the info object
         genderItem.textContent = `Gender: ${info.Gender}`;
@@ -118,8 +148,12 @@ function createCharacterInfoItem(infoList, list) {
         alignmentItem.textContent = `Alignment: ${info.Alignment}`;
         weightItem.textContent = `Weight: ${info.Weight}`;
 
+
+        powerItem.textContent = `Powers: ${powersArray.join(', ')}`;
+
+
         // Append each detail item to the info list
-        [genderItem, eyeItem, raceItem, hairItem, heightItem, publisherItem, skinItem, alignmentItem, weightItem].forEach(detailItem => {
+        [genderItem, eyeItem, raceItem, hairItem, heightItem, publisherItem, skinItem, alignmentItem, weightItem, powerItem].forEach(detailItem => {
             infoList.appendChild(detailItem);
         });
 
@@ -165,6 +199,7 @@ document.getElementById('search-btn').addEventListener('click', function () {
     const searchTerm = document.getElementById('search-box').value;
     const searchField = document.getElementById('search-field').value;
     const display = document.getElementById('results');
+    const search = sanitizeInput(searchTerm);
 
     display.innerHTML = ''; // Clear previous results
 
@@ -173,7 +208,7 @@ document.getElementById('search-btn').addEventListener('click', function () {
 
 
     if (searchField == 'power') {
-        searchPowers(searchTerm)
+        searchPowers(search)
             .then(names => {
                 if (names.length === 0) {
                     msg.textContent = 'No superheroes found.'; // Show message if no heroes found
@@ -190,19 +225,19 @@ document.getElementById('search-btn').addEventListener('click', function () {
                                 })
                         );
                     });
-    
+
                     Promise.all(promises).then(results => {
                         searchList = results.flat();
-                        console.log("ran here" + searchList);
+
                         createCharacterInfoItem(searchList, list);
-    
+
                         display.appendChild(list); // Append the list to the display element
                     });
                 }
             });
     }
-     else {
-        searchHeros(searchField, searchTerm) // Pass the searchTerm to the fetchHero function
+    else {
+        searchHeros(searchField, search) // Pass the searchTerm to the fetchHero function
             .then(data => {
 
                 if (data.length === 0) {
@@ -237,7 +272,7 @@ document.getElementById('search-btn').addEventListener('click', function () {
 
 
 function addHeroesToList(listName, heroIds) {
-    
+
     const arr = []
 
     heroIds.forEach(id => {
@@ -267,13 +302,13 @@ function addHeroesToList(listName, heroIds) {
 
 function addNewList() {
     const listName = document.getElementById('list-name').value;
-
-    console.log('2' + searchList)
+    const list = sanitizeInput(listName);
+    
 
     try {
         createList(function (data) {
             // Now that the list is created, add heroes to it
-            addHeroesToList(listName, searchList);
+            addHeroesToList(list, searchList);
         });
     } catch (error) {
         console.log('There was an error:', error.message);
@@ -287,7 +322,7 @@ function populateListDropdown() {
     selectList.innerHTML = ''; // Clear existing options
 
     // Fetch the list of superhero lists from the server
-    fetch('/api/superhero_lists')
+    return fetch('/api/superhero_lists')
         .then((response) => response.json())
         .then((data) => {
             data.forEach((list) => {
@@ -308,20 +343,46 @@ document.getElementById('select-list').addEventListener('change', (event) => {
 
 });
 
+document.getElementById('sort-dropdown').addEventListener('change', (event) => {
+    const selectedList = document.getElementById('select-list').value
+    loadHeroesForList(selectedList);
+    const display = document.getElementById('results');
+    const list = document.createElement('ul');
+
+    display.innerHTML = ''; // Clear previous results
+
+    sortHeroes(searchList, event.target.value);
+    createCharacterInfoItem(searchList, list);
+
+    display.appendChild(list); // Append the list to the display element
+
+
+
+});
+
 function sortHeroes(heroes, key) {
-    // Use the Array.sort() method to sort the array by the specified key
-    heroes.sort((a, b) => {
-        const valueA = a[key].toLowerCase(); // Convert to lowercase for case-insensitive sorting
-        const valueB = b[key].toLowerCase();
-        if (valueA < valueB) return -1;
-        if (valueA > valueB) return 1;
-        return 0;
+    return heroes.sort((a, b) => {
+        if (key === 'power') {
+            const powersA = Object.values(a.powers).filter(value => value === true).length;
+            const powersB = Object.values(b.powers).filter(value => value === true).length;
+            return powersB - powersA;
+        } else {
+            if (a[key] < b[key]) {
+                return -1;
+            }
+            if (a[key] > b[key]) {
+                return 1;
+            }
+            return 0;
+        }
     });
 }
 
 function loadHeroesForList(selectedList) {
     const list = document.createElement('ul');
     const display = document.getElementById('list-results');
+    const sortTerm = document.getElementById('sort-dropdown').value;
+
     const heroList = [];
     display.innerHTML = ''; // Clear previous results
 
@@ -331,13 +392,14 @@ function loadHeroesForList(selectedList) {
             data.forEach(hero => {
                 heroList.push(fetchHero(hero));
             });
-            
+
             Promise.all(heroList).then(results => {
 
+                sortHeroes(results, sortTerm);
                 createCharacterInfoItem(results, list);
-    
+
                 display.appendChild(list); // Append the list to the display element
-                
+
             });
 
         })
