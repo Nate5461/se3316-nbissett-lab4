@@ -16,7 +16,7 @@ const port = 3000;
 
 app.use(limiter);
 
-app.use('/', express.static('../client'));
+app.use('/', express.static('../client/public/index.html'));
 
 //More middleware for json parsing
 app.use(express.json());
