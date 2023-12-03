@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 
+app.use(express.json());
+
 const { MongoClient } = require('mongodb');
 
 const client = new MongoClient('mongodb://127.0.0.1:27017');
@@ -13,7 +15,34 @@ async function startServer() {
         const superheroInfoCollection = client.db('mydb').collection('superheroInfo');
         const superheroPowersCollection = client.db('mydb').collection('superheroPowers');
         const superheroListsCollection = client.db('mydb').collection('superheroLists');
+        
+        const port = 3000;
 
+        app.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
+        });
+
+        app.use(express.static('../client/build'));
+
+        const rateLimit = require('express-rate-limit');
+
+
+        app.use(express.json({ limit: '1mb' })); 
+
+        const { body, validationResult } = require('express-validator');
+
+        const limiter = rateLimit({
+            windowMs: 15 * 60 * 1000, // 15 minutes
+            max: 100000 // limit each IP to 1000 requests per windowMs
+        });
+
+        //Set up middleware
+        app.use((req, res, next) => {
+            console.log(`${req.method} request for ${req.url}`);
+            next();
+        })
+
+        
         app.get('/api/superhero_info', async (req, res) => {
             console.log('Fetching superhero info...');
             try {
@@ -54,6 +83,53 @@ async function startServer() {
             }
         });
         */
+
+        
+        const bcrypt = require('bcrypt');
+
+
+        app.post('/api/auth/register', [
+            body('username').notEmpty().withMessage('Username is required'),
+            body('password').notEmpty().withMessage('Password is required'),
+        ], async (req, res) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+
+            const { username, password } = req.body;
+
+            try {
+                // Check if the user already exists
+                const existingUser = await superheroInfoCollection.findOne({ username });
+                if (existingUser) {
+                    return res.status(400).json({ message: 'Username already exists' });
+                }
+
+                // Hash the password
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(password, salt);
+
+                // Create a new user
+                const newUser = {
+                    username,
+                    password: hashedPassword,
+                };
+
+                // Insert the new user into the database
+                const result = await superheroInfoCollection.insertOne(newUser);
+                if (result.insertedCount === 1) {
+                    res.status(201).json({ message: 'User registered successfully' });
+                } else {
+                    res.status(500).json({ message: 'Failed to register user' });
+                }
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while registering the user');
+            }
+        });
+
+        
 
         app.get('/api/superhero_info/:id', async (req, res) => {
             const errors = validationResult(req);
@@ -363,32 +439,7 @@ async function startServer() {
             }
         });
 
-        const port = 3000;
-
-        app.listen(port, () => {
-            console.log(`Server is running on port ${port}`);
-        });
-
-        app.use(express.static('../client/build'));
-
-        const rateLimit = require('express-rate-limit');
-
-
-        app.use(express.json({ limit: '1mb' })); 
-
-        const { check, validationResult } = require('express-validator');
-
-        const limiter = rateLimit({
-            windowMs: 15 * 60 * 1000, // 15 minutes
-            max: 100000 // limit each IP to 1000 requests per windowMs
-        });
-
-        //Set up middleware
-        app.use((req, res, next) => {
-            console.log(`${req.method} request for ${req.url}`);
-            next();
-        })
-
+        
 
         //app.use(limiter);
         } catch (err) {
