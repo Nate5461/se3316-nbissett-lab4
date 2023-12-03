@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import './scripts.js';
+import Signup from './components.js';
 
 import { Link, BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 
@@ -68,19 +68,7 @@ function Login() {
   );
 }
 
-function Signup() {
-  return (
-    <div>
-      <h2>Signup</h2>
-      <form>
-        <input id="makeUser" type="text" placeholder="UserName" />
-        <input id= "makeEmail" type="text" placeholder="Email" />
-        <input id="makePass" type="password" placeholder="Password" />
-        <button type="submit">Signup</button>
-      </form> 
-    </div>
-  );
-}
+
 
 
 

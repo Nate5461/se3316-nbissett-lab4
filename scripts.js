@@ -68,7 +68,7 @@ const searchPowers = async (power) => {
             const heros = await response.json();
             return heros;
         } else {
-            console.error('Error:', error);
+            //console.error('Error:', error);
             return [];
         }
     } catch (error) {

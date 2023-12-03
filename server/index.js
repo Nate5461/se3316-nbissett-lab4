@@ -15,7 +15,8 @@ async function startServer() {
         const superheroInfoCollection = client.db('mydb').collection('superheroInfo');
         const superheroPowersCollection = client.db('mydb').collection('superheroPowers');
         const superheroListsCollection = client.db('mydb').collection('superheroLists');
-        
+        const usersCollection = client.db('mydb').collection('userData');
+
         const port = 3000;
 
         app.listen(port, () => {
@@ -42,7 +43,6 @@ async function startServer() {
             next();
         })
 
-        
         app.get('/api/superhero_info', async (req, res) => {
             console.log('Fetching superhero info...');
             try {
@@ -91,17 +91,18 @@ async function startServer() {
         app.post('/api/auth/register', [
             body('username').notEmpty().withMessage('Username is required'),
             body('password').notEmpty().withMessage('Password is required'),
+            body('email').isEmail().withMessage('Email is required'),
         ], async (req, res) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
 
-            const { username, password } = req.body;
+            const { username, password, email } = req.body;
 
             try {
                 // Check if the user already exists
-                const existingUser = await superheroInfoCollection.findOne({ username });
+                const existingUser = await usersCollection.findOne({ username });
                 if (existingUser) {
                     return res.status(400).json({ message: 'Username already exists' });
                 }
@@ -113,16 +114,18 @@ async function startServer() {
                 // Create a new user
                 const newUser = {
                     username,
+                    email,
                     password: hashedPassword,
                 };
 
-                // Insert the new user into the database
-                const result = await superheroInfoCollection.insertOne(newUser);
-                if (result.insertedCount === 1) {
+                try {
+                    // Insert the new user into the database
+                    const result = await usersCollection.insertOne(newUser);
                     res.status(201).json({ message: 'User registered successfully' });
-                } else {
+                  } catch (error) {
+                    console.error(error);
                     res.status(500).json({ message: 'Failed to register user' });
-                }
+                  }
             } catch (err) {
                 console.error(err);
                 res.status(500).send('An error occurred while registering the user');
