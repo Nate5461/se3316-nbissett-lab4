@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
-import Signup from './components.js';
+import Signup from './signup.js';
+import Login from './login.js';
 
 import { Link, BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 
@@ -53,23 +54,6 @@ function Nav() {
     </nav>
   );
 }
-
-
-function Login() {
-  return (
-    <div>
-      <h2>Login</h2>
-      <form>
-        <input type="text" placeholder="Email" />
-        <input type="password" placeholder="Password" />
-        <button type="submit">Login</button>
-      </form>
-    </div>
-  );
-}
-
-
-
 
 
 function SearchArea() {

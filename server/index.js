@@ -7,6 +7,8 @@ const { MongoClient } = require('mongodb');
 
 const client = new MongoClient('mongodb://127.0.0.1:27017');
 
+const jwt = require('jsonwebtoken');
+
 async function startServer() {
     try {
         await client.connect();
@@ -131,6 +133,36 @@ async function startServer() {
                 res.status(500).send('An error occurred while registering the user');
             }
         });
+
+
+        
+
+        app.post('/api/auth/signin', async (req, res) => {
+            const { username, password } = req.body;
+
+            try {
+                // Check if the user exists
+                const user = await usersCollection.findOne({ username });
+                if (!user) {
+                    return res.status(401).json({ message: 'Invalid username or password' });
+                }
+
+                // Verify the password
+                const isPasswordValid = await bcrypt.compare(password, user.password);
+                if (!isPasswordValid) {
+                    return res.status(401).json({ message: 'Invalid username or password' });
+                }
+
+                // Generate a JWT token
+                const token = jwt.sign({ username: user.username }, 'your-secret-key', { expiresIn: '1h' });
+
+                res.json({ token });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while signing in');
+            }
+        });
+
 
         
 
