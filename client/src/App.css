@@ -72,10 +72,15 @@ header {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  height: 100vh;
 }
 
+.search-button {
+  display: none;
+}
 
+.hero-card:hover .search-button {
+  display: block;
+}
 
 /* Add styles for the two-column layout */
 #split-container {
@@ -91,12 +96,13 @@ header {
   border-right: 1px solid #ddd; /* Add a border between the two columns */
 }
 
-#display-area {
-  flex: 1; /* Take up the available space on the right */
-  padding: 10px;
+#display-area { 
+    padding: 10px;
 }
 
-
+#search-area, #display-area {
+  flex: 1;
+}
 
 #search-field {
   padding: 5px;
@@ -124,7 +130,6 @@ input[type="search"] {
 
 /* Add styles for the search area */
 #search-area {
-  position: absolute;
   top: 80px; /* adjust this value to move the search area up or down */
   left: 0;
   bottom: 0;

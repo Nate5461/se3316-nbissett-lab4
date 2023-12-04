@@ -9,7 +9,8 @@ import HeroCard from './HeroCard.js';
 
 function App() {
 
-  const [username, setUsername] = useState(null);
+  const [results, setResults] = useState([]);
+  const [username, setUsername] = useState('');
 
   return (
     <UserContext.Provider value={{ username, setUsername }}>
@@ -20,7 +21,7 @@ function App() {
           <Route path="/" element={
             <>
               <Header />
-              <SplitContainer />
+              <SplitContainer setResults={setResults} results={results}/>
             </>
           } />
         </Routes>
@@ -33,9 +34,6 @@ function Header() {
   return (
     <header>
       <Nav />
-      <div className="content-area">
-        
-      </div>
     </header>
   );
 } 
@@ -76,9 +74,7 @@ function ListActions() {
   // ... similar to SearchArea ...
 }
 
-function SplitContainer() {
-  const [results, setResults] = useState([]);
-
+function SplitContainer({ setResults, results }) {
   return (
     <section id="split-container">
       <div id="list-area">
@@ -97,9 +93,11 @@ function ListArea({ setResults }) {
 }
 
 function DisplayArea({ results }) {
+  console.log('runs display area' + results);
   return (
     <div className="results-container">
       {results.map((hero, index) => (
+        console.log('runs display area' + hero.name),
         <HeroCard key={index} hero={hero} />
       ))}
     </div>

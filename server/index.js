@@ -57,7 +57,7 @@ async function startServer() {
         });
 
         app.get('/api/open/superhero_powers', async (req, res) => {
-            
+            console.log('Fetching superhero powers...')
             try {
                 const docs = await superheroPowersCollection.find().toArray();
                 
@@ -166,7 +166,7 @@ async function startServer() {
 
         
 
-        app.get('/api/superhero_info/:id', async (req, res) => {
+        app.get('/api/open/superhero_info/:id', async (req, res) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
@@ -226,7 +226,7 @@ async function startServer() {
             }
         });
 
-        app.get('/api/superhero_powers/byid/:id', async (req, res) => {
+        app.get('/api/open/superhero_powers/byid/:id', async (req, res) => {
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
@@ -261,7 +261,7 @@ async function startServer() {
             }
         });
 
-        app.get('/api/publishers', async (req, res) => {
+        app.get('/api/open/publishers', async (req, res) => {
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
