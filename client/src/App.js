@@ -45,7 +45,10 @@ function Nav() {
     <nav>
       <div className="auth-buttons">
       {username ? (
-        <span>{username}</span>
+        <>
+          <span>{username}</span>
+          <Link to="/my-lists">My Lists</Link> 
+        </>
       ) : (
         <>
           <Link to="/login">Login</Link>
@@ -70,27 +73,22 @@ function Nav() {
 
 
 
-function ListActions() {
-  // ... similar to SearchArea ...
-}
-
 function SplitContainer({ setResults, results }) {
   return (
     <section id="split-container">
-      <div id="list-area">
+      <div id="search-area">
         <SearchArea setResults={setResults} />
       </div>
       <div id="display-area">
         <DisplayArea results={results} />
       </div>
+      <div id="list-area">
+
+      </div>
     </section>
   );
 }
 
-function ListArea({ setResults }) {
-  // ... similar to SearchArea ...
-  // Call setResults when you want to update the search results
-}
 
 function DisplayArea({ results }) {
   console.log('runs display area' + results);

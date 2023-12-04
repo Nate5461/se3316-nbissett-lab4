@@ -7,6 +7,10 @@ const { MongoClient } = require('mongodb');
 
 const client = new MongoClient('mongodb://127.0.0.1:27017');
 
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
 
 async function startServer() {
@@ -29,7 +33,7 @@ async function startServer() {
 
         const rateLimit = require('express-rate-limit');
 
-
+        app.use(passport.initialize());
         app.use(express.json({ limit: '1mb' })); 
 
         const { body, validationResult } = require('express-validator');
@@ -134,33 +138,47 @@ async function startServer() {
             }
         });
 
-
-        
-
-        app.post('/api/auth/signin', async (req, res) => {
-            const { email, password } = req.body;
-
+        passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
             try {
-                // Check if the user exists
                 const user = await usersCollection.findOne({ email });
                 if (!user) {
-                    return res.status(401).json({ message: 'Invalid username or password' });
+                    return done(null, false, { message: 'Invalid username or password' });
                 }
-
-                // Verify the password
+        
                 const isPasswordValid = await bcrypt.compare(password, user.password);
                 if (!isPasswordValid) {
-                    return res.status(401).json({ message: 'Invalid username or password' });
+                    return done(null, false, { message: 'Invalid username or password' });
                 }
-
-                // Generate a JWT token
-                const token = jwt.sign({ username: user.username }, 'your-secret-key', { expiresIn: '1h' });
-
-                res.json({ token });
+        
+                return done(null, user);
             } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while signing in');
+                return done(err);
             }
+        }));
+        
+
+        const jwtOptions = {
+            jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+            secretOrKey: 'your-secret-key'
+        };
+        
+        passport.use(new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
+            try {
+                const user = await usersCollection.findOne({ _id: jwtPayload.sub });
+                if (user) {
+                    return done(null, user);
+                } else {
+                    return done(null, false);
+                }
+            } catch (err) {
+                return done(err, false);
+            }
+        }));
+        
+        // Use passport.authenticate middleware in your routes
+        app.post('/api/auth/signin', passport.authenticate('local', { session: false }), (req, res) => {
+            const token = jwt.sign({ sub: req.user._id, username: req.user.username }, 'your-secret-key', { expiresIn: '1h' });
+            res.json({ token });
         });
 
 
@@ -302,37 +320,58 @@ async function startServer() {
             }
         });
 
-        app.post('/api/superhero_lists/:listName', async (req, res) => {
+
+        //Adds list to list collection
+        app.post('/api/secure/lists', async (req, res) => {
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
         
-            const newListName = req.params.listName;
+            const { name, description, visibility, heroes } = req.body;
+        
+            // Extract userId from the authenticated user
+            const userId = req.user.id;
         
             try {
-                // Check if a list with the same name already exists
-                const existingList = await superheroListsCollection.findOne({ name: newListName });
+                // Check if a list with the same name already exists for the user
+                const existingList = await superheroListsCollection.findOne({ name, userId });
         
                 if (existingList) {
-                    return res.status(409).send(`The list named "${newListName}" already exists.`);
+                    return res.status(409).send(`The list named "${name}" already exists.`);
                 }
         
                 // If the list name does not exist, create a new list
                 const newList = {
-                    name: newListName,
-                    heroes: [] // Start with an empty list of heroes
+                    name,
+                    description,
+                    visibility: visibility || 'private', // Default to private if not provided
+                    lastEdited: new Date(),
+                    heroes: heroes || [], // Start with an empty list of heroes or use provided list
+                    userId // Add the userId to the list
                 };
         
                 await superheroListsCollection.insertOne(newList);
         
-                res.status(201).send(`New list named "${newListName}" created successfully.`);
+                res.status(201).json({ message: `New list named "${name}" created successfully.`, list: newList });
             } catch (err) {
                 console.error(err);
                 res.status(500).send('An error occurred while creating the superhero list.');
             }
         });
+
+        //Get first 10 public lists
+        app.get('/api/open/publicLists', async (req, res) => {
+            try {
+                const publicLists = await superheroListsCollection.find({ visibility: 'public' }).limit(10).toArray();
+                res.status(200).json(publicLists);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while retrieving the public lists.');
+            }
+        });
+        
 
         app.put('/api/superhero_lists/:listName', async (req, res) => {
             const errors = validationResult(req);
