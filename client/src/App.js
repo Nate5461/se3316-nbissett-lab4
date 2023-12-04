@@ -1,24 +1,29 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import './App.css';
 import Signup from './signup.js';
 import Login from './login.js';
-
+import { UserContext } from './UserContext';
 import { Link, BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 
 function App() {
+
+  const [username, setUsername] = useState(null);
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={
-          <>
-            <Header />
-            <SplitContainer />
-          </>
-        } />
-      </Routes>
-    </Router>
+    <UserContext.Provider value={{ username, setUsername }}>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={
+            <>
+              <Header />
+              <SplitContainer />
+            </>
+          } />
+        </Routes>
+      </Router>
+    </UserContext.Provider>
   );
 }
 
@@ -36,11 +41,19 @@ function Header() {
 } 
 
 function Nav() {
+  const { username } = useContext(UserContext);
+  
   return (
     <nav>
       <div className="auth-buttons">
-        <Link to="/login">Login</Link>
-        <Link to="/signup">Signup</Link>
+      {username ? (
+        <span>{username}</span>
+      ) : (
+        <>
+          <Link to="/login">Login</Link>
+          <Link to="/signup">Signup</Link>
+        </>
+      )}
       </div>
       <div className="title-area">
         <h1>

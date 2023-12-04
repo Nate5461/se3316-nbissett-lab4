@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './App.css';
 
 function Signup() {
   const [username, setUsername] = useState('');
@@ -32,7 +33,7 @@ function Signup() {
   };
 
   return (
-    <div>
+    <div className="form-container">
       <h2>Signup</h2>
       <form onSubmit={handleSubmit}>
         <input id="makeUser" type="text" placeholder="UserName" value={username} onChange={e => setUsername(e.target.value)} />

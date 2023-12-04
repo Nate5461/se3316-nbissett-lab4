@@ -138,11 +138,11 @@ async function startServer() {
         
 
         app.post('/api/auth/signin', async (req, res) => {
-            const { username, password } = req.body;
+            const { email, password } = req.body;
 
             try {
                 // Check if the user exists
-                const user = await usersCollection.findOne({ username });
+                const user = await usersCollection.findOne({ email });
                 if (!user) {
                     return res.status(401).json({ message: 'Invalid username or password' });
                 }
