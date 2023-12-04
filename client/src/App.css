@@ -80,8 +80,10 @@ header {
 /* Add styles for the two-column layout */
 #split-container {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
 }
+
 
 #list-area {
   flex: 1; /* Take up the available space on the left */
@@ -107,28 +109,6 @@ header {
   width: 200px;
 }
 
-
-
-#results {
-  margin-top: 20px;
-}
-
-#list-actions {
-  margin-top: 20px;
-}
-
-#list-name {
-  padding: 5px;
-  margin-right: 5px;
-}
-
-#create-list-btn {
-  padding: 5px 10px;
-}
-
-#list-container {
-  margin-top: 10px;
-}
 
 
 input[type="search"] {
@@ -204,4 +184,34 @@ input[type="search"] {
 /* Change the background color on hover */
 .form-container button[type="submit"]:hover {
   background-color: #003f80;
+}
+
+.results-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-block {
+  border: 1px solid purple;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10px 0;
+  background-color: #f0f0f0;
+}
+
+.hero-card {
+  border: 1px solid #000;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10px 0;
+  background-color: #f0f0f0;
+  width: 100%; 
+}
+
+.hero-card .hero-details {
+  display: none;
+}
+
+.hero-card:hover .hero-details {
+  display: block;
 }

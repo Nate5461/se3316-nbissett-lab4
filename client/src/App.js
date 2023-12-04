@@ -4,6 +4,8 @@ import Signup from './signup.js';
 import Login from './login.js';
 import { UserContext } from './UserContext';
 import { Link, BrowserRouter as Router, Route, Routes} from 'react-router-dom';
+import SearchArea from './Search.js';
+import HeroCard from './HeroCard.js';
 
 function App() {
 
@@ -32,9 +34,7 @@ function Header() {
     <header>
       <Nav />
       <div className="content-area">
-        <div className="search-area">
-          <SearchArea />
-        </div>
+        
       </div>
     </header>
   );
@@ -42,7 +42,7 @@ function Header() {
 
 function Nav() {
   const { username } = useContext(UserContext);
-  
+
   return (
     <nav>
       <div className="auth-buttons">
@@ -69,27 +69,6 @@ function Nav() {
 }
 
 
-function SearchArea() {
-  return (
-    <div id="search-area">
-      <div>
-        <input type="search" id="name-search" placeholder="Search by name..." />
-      </div>
-      <div>
-        <input type="search" id="power-search" placeholder="Search by power..." />
-      </div>
-      <div>
-        <input type="search" id="publisher-search" placeholder="Search by publisher..." />
-      </div>
-      <div>
-        <input type="search" id="race-search" placeholder="Search by race..." />
-      </div>
-      <div>
-        <button id="search-btn">Search</button>
-      </div>
-    </div>
-  );
-}
 
 
 
@@ -98,20 +77,33 @@ function ListActions() {
 }
 
 function SplitContainer() {
+  const [results, setResults] = useState([]);
+
   return (
     <section id="split-container">
-      <ListArea />
-      <DisplayArea />
+      <div id="list-area">
+        <SearchArea setResults={setResults} />
+      </div>
+      <div id="display-area">
+        <DisplayArea results={results} />
+      </div>
     </section>
   );
 }
 
-function ListArea() {
+function ListArea({ setResults }) {
   // ... similar to SearchArea ...
+  // Call setResults when you want to update the search results
 }
 
-function DisplayArea() {
-  // ... similar to SearchArea ...
+function DisplayArea({ results }) {
+  return (
+    <div className="results-container">
+      {results.map((hero, index) => (
+        <HeroCard key={index} hero={hero} />
+      ))}
+    </div>
+  );
 }
 
 export default App;

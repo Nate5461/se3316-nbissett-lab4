@@ -45,7 +45,7 @@ async function startServer() {
             next();
         })
 
-        app.get('/api/superhero_info', async (req, res) => {
+        app.get('/api/open/superhero_info', async (req, res) => {
             console.log('Fetching superhero info...');
             try {
                 const docs = await superheroInfoCollection.find().toArray();
@@ -56,11 +56,11 @@ async function startServer() {
             }
         });
 
-        app.get('/api/superhero_powers', async (req, res) => {
-            console.log('Fetching superhero powers...');
+        app.get('/api/open/superhero_powers', async (req, res) => {
+            
             try {
                 const docs = await superheroPowersCollection.find().toArray();
-                //console.log('Fetched superhero powers:', docs);
+                
                 res.json(docs);
             } catch (err) {
                 console.error('Error fetching superhero powers:', err);
@@ -200,7 +200,7 @@ async function startServer() {
             }
         });
 
-        app.get('/api/superhero_powers/bypower/:power', async (req, res) => {
+        app.get('/api/open/superhero_powers/bypower/:power', async (req, res) => {
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
