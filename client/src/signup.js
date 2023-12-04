@@ -36,10 +36,10 @@ function Signup() {
     <div className="form-container">
       <h2>Signup</h2>
       <form onSubmit={handleSubmit}>
-        <input id="makeUser" type="text" placeholder="UserName" value={username} onChange={e => setUsername(e.target.value)} />
-        <input id="makeEmail" type="text" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-        <input id="makePass" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-        <input id="confirmPass" type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+        <input id="makeUser" type="text" placeholder="UserName" value={username} onChange={e => setUsername(e.target.value)} required />
+        <input id="makeEmail" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+        <input id="makePass" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
+        <input id="confirmPass" type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
         <button type="submit">Signup</button>
       </form> 
     </div>

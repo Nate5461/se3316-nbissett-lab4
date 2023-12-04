@@ -4,24 +4,36 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from './UserContext';
 
-function SignIn() {
-    const navigate = useNavigate();
+function Login() {
+  const navigate = useNavigate();
   const { setUsername: setGlobalUsername } = useContext(UserContext);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [loginError, setLoginError] = useState(''); // new state variable for login errors
 
-  const handleEmailChange = (event) => {
-    setEmail(event.target.value);
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    setEmailError(''); // clear error when user starts typing
   };
 
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    setPasswordError(''); // clear error when user starts typing
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-
+    event.preventDefault(); // prevent default form submission behavior
+  
+    if (!email) {
+      setEmailError('Please enter your email.');
+    }
+    if (!password) {
+      setPasswordError('Please enter your password.');
+    }
+  
     const response = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: {
@@ -29,9 +41,9 @@ function SignIn() {
       },
       body: JSON.stringify({ email, password }),
     });
-
+  
     const data = await response.json();
-
+  
     if (response.ok) {
       console.log('Token:', data.token);
       const decodedToken = jwtDecode(data.token);
@@ -41,6 +53,7 @@ function SignIn() {
       navigate('/');
     } else {
       console.error(data.message);
+      setLoginError('Incorrect login. Please try again.'); // set login error if login fails
     }
   };
 
@@ -49,18 +62,31 @@ function SignIn() {
       <form onSubmit={handleSubmit}>
         <label>
           Email:
-          <input type="text" value={email} onChange={handleEmailChange} />
+          <input 
+            type="email" 
+            value={email} 
+            onChange={handleEmailChange} 
+            required 
+          />
         </label>
         <br />
         <label>
           Password:
-          <input type="password" value={password} onChange={handlePasswordChange} />
+          <input 
+            type="password" 
+            value={password} 
+            onChange={handlePasswordChange} 
+            required 
+          />
         </label>
         <br />
         <button type="submit">Sign In</button>
+        <p>{emailError}</p>
+        <p>{passwordError}</p>
+        <p>{loginError}</p> {/* display login error */}
       </form>
     </div>
   );
 }
 
-export default SignIn;
+export default Login;

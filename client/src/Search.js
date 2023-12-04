@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import levenshtein from 'fast-levenshtein';
 
 function SearchArea({setResults: setResultsProp}) {
     const [name, setName] = useState('');
@@ -13,23 +14,23 @@ function SearchArea({setResults: setResultsProp}) {
     }, [name, power, publisher, race]);
   
     const handleInputChange = (event) => {
-      switch (event.target.id) {
-        case 'name-search':
-          setName(event.target.value);
-          break;
-        case 'power-search':
-          setPower(event.target.value);
-          break;
-        case 'publisher-search':
-          setPublisher(event.target.value);
-          break;
-        case 'race-search':
-          setRace(event.target.value);
-          break;
-        default:
-          break;
-      }
-    };
+        switch (event.target.id) {
+          case 'name-search':
+            setName(event.target.value || null);
+            break;
+          case 'power-search':
+            setPower(event.target.value || null);
+            break;
+          case 'publisher-search':
+            setPublisher(event.target.value || null);
+            break;
+          case 'race-search':
+            setRace(event.target.value || null);
+            break;
+          default:
+            break;
+        }
+      };
 
     const searchSuperheroes = () => {
         if (name || power || publisher || race) {
@@ -46,48 +47,54 @@ function SearchArea({setResults: setResultsProp}) {
           } else {
             fetchSuperheroInfo([]);
           }
-        }
+        }else {
+            // clear the results if all search fields are empty
+            setResults([]);
+            setResultsProp([]);
+          }
       }
       
       const fetchSuperheroInfo = async (powerResults) => {
         try {
-            const response = await fetch(`/api/open/superhero_info`, {
-                method: 'GET',
-            });
-            const infoResults = await response.json();
-            let filterResults = infoResults.filter(hero => hero.Publisher);
-    
-            if (power) {
-                filterResults = filterResults.filter(hero => hero.name && powerResults.includes(hero.name.toLowerCase()));
-            }
-            if (name) {
-                filterResults = filterResults.filter(hero => hero.name && hero.name.toLowerCase().includes(name.toLowerCase()));
-            }
-            if (publisher) {
-                filterResults = filterResults.filter(hero => hero.Publisher.toLowerCase().includes(publisher.toLowerCase()));
-            }
-            if (race) {
-                filterResults = filterResults.filter(hero => hero.Race && hero.Race.toLowerCase().includes(race.toLowerCase()));
-            }
-    
-            const powersResponse = await fetch(`/api/open/superhero_powers`);
-            const allPowers = await powersResponse.json();
-    
-            const resultsWithPowers = filterResults.map(hero => {
-                const heroPowersData = allPowers.find(powerData => powerData.hero_names === hero.name);
-                let heroPowers = '';
-                if (heroPowersData) {
-                    heroPowers = Object.keys(heroPowersData).filter(power => heroPowersData[power] === "True").join(', ');
-                }
-                return {...hero, powers: heroPowers};
-            });
-    
-            setResults(resultsWithPowers);
-            setResultsProp(resultsWithPowers); 
-        } catch (error) {
-            console.error('Error:', error);
+          const response = await fetch(`/api/open/superhero_info`, {
+            method: 'GET',
+          });
+          const infoResults = await response.json();
+          let filterResults = infoResults.filter(hero => hero.Publisher);
+      
+          
+      
+          if (power) {
+            filterResults = filterResults.filter(hero => hero.name && powerResults.includes(hero.name.toLowerCase()));
         }
-    }
+        if (name) {
+            filterResults = filterResults.filter(hero => hero.name && hero.name.toLowerCase().includes(name.toLowerCase()));
+        }
+        if (publisher) {
+            filterResults = filterResults.filter(hero => hero.Publisher.toLowerCase().includes(publisher.toLowerCase()));
+        }
+        if (race) {
+            filterResults = filterResults.filter(hero => hero.Race && hero.Race.toLowerCase().includes(race.toLowerCase()));
+        }
+        
+          const powersResponse = await fetch(`/api/open/superhero_powers`);
+          const allPowers = await powersResponse.json();
+      
+          const resultsWithPowers = filterResults.map(hero => {
+            const heroPowersData = allPowers.find(powerData => powerData.hero_names === hero.name);
+            let heroPowers = '';
+            if (heroPowersData) {
+              heroPowers = Object.keys(heroPowersData).filter(power => heroPowersData[power] === "True").join(', ');
+            }
+            return {...hero, powers: heroPowers};
+          });
+      
+          setResults(resultsWithPowers);
+          setResultsProp(resultsWithPowers); 
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
       
 
   return (

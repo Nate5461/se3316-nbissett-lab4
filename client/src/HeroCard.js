@@ -9,7 +9,7 @@ function HeroCard({ hero }) {
         <div className="hero-card">
             <h2>{hero.name}</h2>
             <p>{hero.Publisher}</p>
-            <button className="search-button" onClick={() => window.open(`https://duckduckgo.com/?q=${encodeURIComponent(hero.name)}`, '_blank')}>Search</button>
+            <button className="search-button" onClick={() => window.open(`https://duckduckgo.com/?q=${encodeURIComponent(hero.name + ' ' + hero.Publisher)}`, '_blank')}>Search</button>
             <div className="hero-details">
                 <p>Race: {hero.Race}</p>
                 <p>Gender: {hero.Gender}</p>
