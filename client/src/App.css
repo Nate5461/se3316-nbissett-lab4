@@ -168,7 +168,7 @@ input[type="search"] {
 }
 
 /* Style the input fields */
-.form-container input[type="text"], .form-container input[type="password"] {
+.form-container input[type="text"], .form-container input[type="password"], .form-container input[type="email"] {
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ddd;

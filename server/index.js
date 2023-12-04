@@ -104,9 +104,9 @@ async function startServer() {
 
             try {
                 // Check if the user already exists
-                const existingUser = await usersCollection.findOne({ username });
+                const existingUser = await usersCollection.findOne({ email });
                 if (existingUser) {
-                    return res.status(400).json({ message: 'Username already exists' });
+                    return res.status(400).json({ message: 'email already exists' });
                 }
 
                 // Hash the password

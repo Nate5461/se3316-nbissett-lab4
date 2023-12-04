@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import levenshtein from 'fast-levenshtein';
 
 function SearchArea({setResults: setResultsProp}) {
     const [name, setName] = useState('');
@@ -76,7 +75,7 @@ function SearchArea({setResults: setResultsProp}) {
         if (race) {
             filterResults = filterResults.filter(hero => hero.Race && hero.Race.toLowerCase().includes(race.toLowerCase()));
         }
-        
+
           const powersResponse = await fetch(`/api/open/superhero_powers`);
           const allPowers = await powersResponse.json();
       
