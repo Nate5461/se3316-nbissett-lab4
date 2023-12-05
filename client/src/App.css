@@ -139,6 +139,7 @@ input[type="search"] {
   gap: 10px; /* Add some space between the search boxes */
   width: 300px;
   background-color: blueviolet;
+  height: 100%;
 }
 
 
@@ -218,5 +219,22 @@ input[type="search"] {
 }
 
 .hero-card:hover .hero-details {
+  display: block;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  min-width: 160px;
+  z-index: 1;
+}
+
+
+.dropdown:hover .dropdown-content {
   display: block;
 }

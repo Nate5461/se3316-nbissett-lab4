@@ -6,6 +6,8 @@ import { UserContext } from './UserContext';
 import { Link, BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import SearchArea from './Search.js';
 import HeroCard from './HeroCard.js';
+import Nav from './Nav.js';
+import ChangePassword from './ChangePassword.js';
 
 function App() {
 
@@ -18,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/ChangePassword" element={<ChangePassword />} />
           <Route path="/" element={
             <>
               <Header />
@@ -38,36 +41,7 @@ function Header() {
   );
 } 
 
-function Nav() {
-  const { username } = useContext(UserContext);
 
-  return (
-    <nav>
-      <div className="auth-buttons">
-      {username ? (
-        <>
-          <span>{username}</span>
-          <Link to="/my-lists">My Lists</Link> 
-        </>
-      ) : (
-        <>
-          <Link to="/login">Login</Link>
-          <Link to="/signup">Signup</Link>
-        </>
-      )}
-      </div>
-      <div className="title-area">
-        <h1>
-          <span className="title-text">SUPERHERO FINDER
-            <div className="hover-box">
-            <p>Step into the world of superheroes with our dynamic platform, where an extensive database awaits your exploration. Unleash the power of search to discover heroes based on their name, race, power, or publisher, and effortlessly delve into detailed information about each character. Whether you're a casual enthusiast or a dedicated fan, our site caters to all. Authenticated users can take their experience to the next level by creating personalized lists, managing heroes, and leaving reviews to share their passion with the community. Join us on this thrilling adventure where the extraordinary becomes ordinary, and every hero has a story to tell!</p>
-            </div>
-          </span>
-        </h1>
-      </div>
-    </nav>
-  );
-}
 
 
 

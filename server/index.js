@@ -174,6 +174,9 @@ async function startServer() {
                 return done(err, false);
             }
         }));
+
+        
+
         
         // Use passport.authenticate middleware in your routes
         app.post('/api/auth/signin', passport.authenticate('local', { session: false }), (req, res) => {
@@ -181,6 +184,30 @@ async function startServer() {
             res.json({ token });
         });
 
+        app.post('/api/auth/change', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            console.log('Change password request received');
+            
+            const { oldPassword, newPassword } = req.body;
+          
+            try {
+              // Verify the old password
+              const isPasswordValid = await bcrypt.compare(oldPassword, req.user.password);
+              if (!isPasswordValid) {
+                return res.status(400).json({ message: 'Invalid old password' });
+              }
+          
+              // Hash the new password
+              const salt = await bcrypt.genSalt(10);
+              const hashedPassword = await bcrypt.hash(newPassword, salt);
+          
+              // Update the user's password in the database
+              await usersCollection.updateOne({ _id: req.user._id }, { $set: { password: hashedPassword } });
+          
+              res.json({ message: 'Password changed successfully' });
+            } catch (err) {
+              res.status(500).send('An error occurred while changing the password');
+            }
+          });
 
         
 

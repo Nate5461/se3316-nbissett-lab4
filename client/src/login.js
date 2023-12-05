@@ -46,13 +46,14 @@ function Login() {
   
     if (response.ok) {
       console.log('Token:', data.token);
+      localStorage.setItem('token', data.token); // store token in local storage
       const decodedToken = jwtDecode(data.token);
       const username = decodedToken.username;
       setGlobalUsername(username);
       console.log('Username:', username);
       navigate('/');
     } else {
-      console.error(data.message);
+      console.error('Login failed:');
       setLoginError('Incorrect login. Please try again.'); // set login error if login fails
     }
   };
@@ -83,7 +84,7 @@ function Login() {
         <button type="submit">Sign In</button>
         <p>{emailError}</p>
         <p>{passwordError}</p>
-        <p>{loginError}</p> {/* display login error */}
+        <p>{loginError}</p> 
       </form>
     </div>
   );
