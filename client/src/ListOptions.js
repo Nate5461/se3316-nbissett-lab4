@@ -1,9 +1,9 @@
 import React from 'react';
-
+import './App.css';
 
 function ListOptions() {
 
-    
+
     return (
         <div id="list-options">
             <h1>List Options</h1>

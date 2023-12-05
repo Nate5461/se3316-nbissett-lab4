@@ -59,16 +59,22 @@ function Header() {
 
 
 function SplitContainer({ setResults, results }) {
+  const [selectedItem, setSelectedItem] = useState('public');
+
+  const handleSelectedItemChange = (newSelectedItem) => {
+    setSelectedItem(newSelectedItem);
+  };
+
   return (
     <section id="split-container">
       <div id="search-area">
-        <SearchArea setResults={setResults} />
+        <SearchArea setResults={setResults} selectedItem={selectedItem} />
       </div>
       <div id="display-area">
         <DisplayArea results={results} />
       </div>
       <div id="list-area">
-        <ListDisplay />
+        <ListDisplay onSelectedItemChange={handleSelectedItemChange}/>
       </div>
     </section>
   );

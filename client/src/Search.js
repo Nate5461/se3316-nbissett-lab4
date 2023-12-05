@@ -2,8 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import './App.css';
 import { UserContext } from './UserContext';
 import ListOptions from './ListOptions.js';
+import ReviewOptions from './ReviewOptions.js';
 
-function SearchArea({setResults: setResultsProp}) {
+function SearchArea({setResults: setResultsProp, selectedItem}) {
     const [name, setName] = useState('');
     const [power, setPower] = useState('');
     const [publisher, setPublisher] = useState('');
@@ -51,6 +52,7 @@ function SearchArea({setResults: setResultsProp}) {
           }
         }else {
             // clear the results if all search fields are empty
+            console.log('Clearing results');
             setResults([]);
             setResultsProp([]);
           }
@@ -114,7 +116,8 @@ function SearchArea({setResults: setResultsProp}) {
       <div>
         <input type="search" id="race-search" placeholder="Search by race..." onChange={handleInputChange} />
       </div>
-      <ListOptions />
+    {username && <ListOptions />}
+    {selectedItem === 'public' && <ReviewOptions />}
     </div>
   );
 }
