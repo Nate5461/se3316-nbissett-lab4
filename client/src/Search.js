@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './App.css';
+import { UserContext } from './UserContext';
+import ListOptions from './ListOptions.js';
 
 function SearchArea({setResults: setResultsProp}) {
     const [name, setName] = useState('');
@@ -7,7 +9,8 @@ function SearchArea({setResults: setResultsProp}) {
     const [publisher, setPublisher] = useState('');
     const [race, setRace] = useState('');
     const [results, setResults] = useState([]);
-  
+    const { username } = useContext(UserContext);
+
     useEffect(() => {
       searchSuperheroes();
     }, [name, power, publisher, race]);
@@ -98,6 +101,7 @@ function SearchArea({setResults: setResultsProp}) {
 
   return (
     <div id="search-area">
+      <h1>Search Options</h1>
       <div>
         <input type="search" id="name-search" placeholder="Search by name..." onChange={handleInputChange} />
       </div>
@@ -110,6 +114,7 @@ function SearchArea({setResults: setResultsProp}) {
       <div>
         <input type="search" id="race-search" placeholder="Search by race..." onChange={handleInputChange} />
       </div>
+      <ListOptions />
     </div>
   );
 }

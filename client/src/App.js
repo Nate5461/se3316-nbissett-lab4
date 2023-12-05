@@ -8,6 +8,8 @@ import SearchArea from './Search.js';
 import HeroCard from './HeroCard.js';
 import Nav from './Nav.js';
 import ChangePassword from './ChangePassword.js';
+import ListDisplay from './ListDisplay.js';
+
 
 function App() {
 
@@ -18,8 +20,17 @@ function App() {
     <UserContext.Provider value={{ username, setUsername }}>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={
+            <>
+              <Header />
+              <Login />
+            </>
+          } />
+          
+          <Route path="/signup" element={<>
+            <Header/>
+            <Signup />
+          </>} />
           <Route path="/ChangePassword" element={<ChangePassword />} />
           <Route path="/" element={
             <>
@@ -57,7 +68,7 @@ function SplitContainer({ setResults, results }) {
         <DisplayArea results={results} />
       </div>
       <div id="list-area">
-
+        <ListDisplay />
       </div>
     </section>
   );

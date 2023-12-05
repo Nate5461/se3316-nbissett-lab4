@@ -6,12 +6,15 @@ body {
 nav {
   display: flex;
   justify-content: space-between;
-  align-items: center; /* align items vertically */
-  background-color: #bfdbfa;
+  align-items: center; 
   color: rgb(26, 26, 27);
   padding: 10px;
   width: 100%;
   height: 60px;
+}
+
+nav:hover {
+  color: #f0f0f0;
 }
 
 .title-area {
@@ -127,9 +130,32 @@ input[type="search"] {
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
+#list-options > *:not(h1):not(#list-visibility)  {
+  padding: 5px;
+  margin-right: 5px;
+  width: 280px;
+  border: 1px solid #ddd;
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Shadow for a "raised" effect */
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+#visibility {
+  width: calc(300px - 120px); /* Subtract the estimated width of the label */
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+label[for="visibility"] {
+  width: 110px;
+  display: inline-block;
+}
 
 /* Add styles for the search area */
-#search-area {
+#search-area{
   top: 80px; /* adjust this value to move the search area up or down */
   left: 0;
   bottom: 0;
@@ -142,10 +168,24 @@ input[type="search"] {
   height: 100%;
 }
 
+#list-options{
+  top: 80px; /* adjust this value to move the search area up or down */
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column; /* Stack the search boxes vertically */
+  align-items: flex-start;
+  gap: 10px; /* Add some space between the search boxes */
+  width: 300px;
+  background-color: blueviolet;
+  height: 100%;
+}
 
 #search-area > * {
   padding: 10px; /* add padding to the children of #search-area */
+  font-family: 'Courier New', Courier, monospace;
 }
+
 
 #search-btn {
   padding: 5px 10px;
@@ -237,4 +277,11 @@ input[type="search"] {
 
 .dropdown:hover .dropdown-content {
   display: block;
+}
+
+.list-options {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
