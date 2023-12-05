@@ -89,7 +89,6 @@ function DisplayArea({ results }) {
   return (
     <div className="results-container">
       {results.map((hero, index) => (
-        console.log('runs display area' + hero.name),
         <HeroCard key={index} hero={hero} />
       ))}
     </div>

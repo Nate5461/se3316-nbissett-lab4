@@ -29,12 +29,15 @@ function ListOptions() {
       
         if (!listname) {
           setListnameError('Please enter a list name');
+            return;
         }
-        if (!heroes) {
-          setHeroError('Please search heros to add to list');
+
+        console.log(heroes, heroes.length, "heroes");
+        if (!heroes || heroes.length === 0) {
+            setHeroError('Please search heroes to add to list');
+            return; 
         }
         
-        console.log(listname);
         const token = localStorage.getItem('token');
       
         const response = await fetch('/api/secure/createlists', {

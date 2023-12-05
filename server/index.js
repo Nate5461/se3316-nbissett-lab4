@@ -323,27 +323,20 @@ async function startServer() {
             }
         });
 
-        //Search for ids with given field/search term/ and number of results
-        app.get('/api/superhero_info/:field/:pattern/:n?', async (req, res) => {
-            const errors = validationResult(req);
         
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            const { field, pattern, n } = req.params;
-            const numResults = n ? parseInt(n, 10) : Infinity; // Use Infinity when n is not provided
+
+        app.get('/api/secure/lists', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const userId = req.user._id;
         
             try {
-                const regex = new RegExp(pattern, 'i');
-                const query = { [field]: regex };
-                const heroes = await superheroInfoCollection.find(query).limit(numResults).toArray();
-                const ids = heroes.map(hero => hero.id); // Assuming each hero object has an 'id' field
+                const userLists = await superheroListsCollection
+                    .find({ userId: new ObjectId(userId) })
+                    .toArray();
         
-                res.json(ids);
+                res.status(200).json(userLists);
             } catch (err) {
                 console.error(err);
-                res.status(500).send('An error occurred while fetching the superhero data.');
+                res.status(500).send('An error occurred while retrieving the user lists.');
             }
         });
 
@@ -362,7 +355,8 @@ async function startServer() {
         
             // Extract userId from the authenticated user
             const userId = req.user._id;
-            
+            const username = req.user.username;
+
             console.log('data' + listname + description + visibility + heroes + userId);
             try {
                 // Check if a list with the same name already exists for the user
@@ -380,7 +374,8 @@ async function startServer() {
                     visibility: visibility || 'private', // Default to private if not provided
                     lastEdited: new Date(),
                     heroes: heroes || [], // Start with an empty list of heroes or use provided list
-                    userId // Add the userId to the list
+                    userId, // Add the userId to the list
+                    username
                 };
         
                 await superheroListsCollection.insertOne(newList);
@@ -392,10 +387,14 @@ async function startServer() {
             }
         });
 
-        //Get first 10 public lists
+        //Get most recent public lists
         app.get('/api/open/publicLists', async (req, res) => {
             try {
-                const publicLists = await superheroListsCollection.find({ visibility: 'public' }).limit(10).toArray();
+                const publicLists = await superheroListsCollection
+                    .find({ visibility: 'public' })
+                    .sort({ lastEdited: -1 }) // Sort by lastEdited in descending order
+                    .limit(10)
+                    .toArray();
                 res.status(200).json(publicLists);
             } catch (err) {
                 console.error(err);
@@ -404,54 +403,7 @@ async function startServer() {
         });
         
 
-        app.put('/api/superhero_lists/:listName', async (req, res) => {
-            const errors = validationResult(req);
         
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            const listName = req.params.listName;
-            const superheroIds = req.body.superheroIds;
-        
-            try {
-                const list = await superheroListsCollection.findOne({ name: listName });
-        
-                if (!list) {
-                    return res.status(404).send(`The list named "${listName}" does not exist.`);
-                }
-        
-                await superheroListsCollection.updateOne({ name: listName }, { $set: { heroes: superheroIds } });
-        
-                res.status(200).send(`Superhero IDs updated successfully in list "${listName}".`);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while updating the superhero list.');
-            }
-        });
-
-        app.get('/api/superhero_lists/:listName', async (req, res) => {
-            const errors = validationResult(req);
-        
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            const listName = req.params.listName;
-        
-            try {
-                const list = await superheroListsCollection.findOne({ name: listName });
-        
-                if (list) {
-                    res.json(list.heroes); // Return the list of IDs
-                } else {
-                    res.status(404).send(`List named ${listName} not found.`);
-                }
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while fetching the superhero list.');
-            }
-        });
 
 
         app.get('/api/superhero_lists', async (req, res) => {

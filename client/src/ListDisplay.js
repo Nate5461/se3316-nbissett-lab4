@@ -1,17 +1,64 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from './UserContext';
+import ListCard from './ListCard'; // Import the ListCard component
 import './App.css';
-import SearchArea from './Search';
-
 
 const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
   const [selectedItem, setSelectedItem] = useState('public');
+  const [userLists, setUserLists] = useState([]);
   const { username } = useContext(UserContext);
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
     onSelectedItemChange(item);
   };
+
+  useEffect(() => {
+    if (selectedItem === 'mylists') {
+      // Get the JWT from wherever you're storing it
+      const token = localStorage.getItem('token');
+
+      // Call the endpoint
+      fetch('/api/secure/lists', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        console.log('Raw response:', response);
+        return response.json();
+    })
+    .then(setUserLists)
+    .catch(console.error);
+    }
+  }, [selectedItem]);
+
+  useEffect(() => {
+    let endpoint;
+    let headers = {};
+  
+    if (selectedItem === 'mylists') {
+      endpoint = '/api/secure/lists';
+      const token = localStorage.getItem('token');
+      headers['Authorization'] = `Bearer ${token}`;
+
+    } else if (selectedItem === 'public') {
+      endpoint = '/api/open/publicLists';
+    }
+  
+    if (endpoint) {
+      fetch(endpoint, { headers })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(setUserLists)
+        .catch(console.error);
+    }
+  }, [selectedItem]);
+
 
   return (
     <div id="list-type">
@@ -31,8 +78,9 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
           </div>
         )}
       </div>
-      <div className="list-container"></div>
-        
+      <div className="list-container">
+        {userLists.map(list => <ListCard key={list._id} list={list} />)}
+      </div>
     </div>
   );
 };
