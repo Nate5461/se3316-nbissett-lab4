@@ -9,6 +9,7 @@ import HeroCard from './HeroCard.js';
 import Nav from './Nav.js';
 import ChangePassword from './ChangePassword.js';
 import ListDisplay from './ListDisplay.js';
+import { ResultsContext } from './ResultsContext.js';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
 
   return (
     <UserContext.Provider value={{ username, setUsername }}>
+      <ResultsContext.Provider value={{ results, setResults }}>
       <Router>
         <Routes>
           <Route path="/login" element={
@@ -40,6 +42,7 @@ function App() {
           } />
         </Routes>
       </Router>
+      </ResultsContext.Provider>
     </UserContext.Provider>
   );
 }

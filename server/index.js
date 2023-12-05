@@ -3,7 +3,7 @@ const app = express();
 
 app.use(express.json());
 
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 const client = new MongoClient('mongodb://127.0.0.1:27017');
 
@@ -164,7 +164,7 @@ async function startServer() {
         
         passport.use(new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
             try {
-                const user = await usersCollection.findOne({ _id: jwtPayload.sub });
+                const user = await usersCollection.findOne({ _id: new ObjectId(jwtPayload.sub) });
                 if (user) {
                     return done(null, user);
                 } else {
@@ -349,29 +349,33 @@ async function startServer() {
 
 
         //Adds list to list collection
-        app.post('/api/secure/lists', async (req, res) => {
+        app.post('/api/secure/createlists', passport.authenticate('jwt', { session: false }), async (req, res) => {
+
+            console.log('working, id' + req.user._id);
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
         
-            const { name, description, visibility, heroes } = req.body;
+            const { listname, description, visibility, heroes } = req.body;
         
             // Extract userId from the authenticated user
-            const userId = req.user.id;
-        
+            const userId = req.user._id;
+            
+            console.log('data' + listname + description + visibility + heroes + userId);
             try {
                 // Check if a list with the same name already exists for the user
-                const existingList = await superheroListsCollection.findOne({ name, userId });
+                const existingList = await superheroListsCollection.findOne({ listname, userId });
         
                 if (existingList) {
-                    return res.status(409).send(`The list named "${name}" already exists.`);
+                    console.log('List already exists');
+                    return res.status(409).send(`The list named "${listname}" already exists.`);
                 }
         
                 // If the list name does not exist, create a new list
                 const newList = {
-                    name,
+                    listname,
                     description,
                     visibility: visibility || 'private', // Default to private if not provided
                     lastEdited: new Date(),
@@ -381,7 +385,7 @@ async function startServer() {
         
                 await superheroListsCollection.insertOne(newList);
         
-                res.status(201).json({ message: `New list named "${name}" created successfully.`, list: newList });
+                res.status(201).json({ message: `New list named "${listname}" created successfully.`, list: newList });
             } catch (err) {
                 console.error(err);
                 res.status(500).send('An error occurred while creating the superhero list.');
