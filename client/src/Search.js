@@ -3,6 +3,7 @@ import './App.css';
 import { UserContext } from './UserContext';
 import ListOptions from './ListOptions.js';
 import ReviewOptions from './ReviewOptions.js';
+import similarity from 'string-similarity';
 
 function SearchArea({setResults: setResultsProp, selectedItem}) {
     const [name, setName] = useState('');
@@ -69,16 +70,16 @@ function SearchArea({setResults: setResultsProp, selectedItem}) {
           
       
           if (power) {
-            filterResults = filterResults.filter(hero => hero.name && powerResults.includes(hero.name.toLowerCase()));
+            filterResults = filterResults.filter(hero => hero.name && powerResults.includes(hero.name.toLowerCase().trim()));
         }
         if (name) {
-            filterResults = filterResults.filter(hero => hero.name && hero.name.toLowerCase().includes(name.toLowerCase()));
+            filterResults = filterResults.filter(hero => hero.name && similarity.compareTwoStrings(name.trim(), hero.name.toLowerCase().trim()) > 0.5);
         }
         if (publisher) {
-            filterResults = filterResults.filter(hero => hero.Publisher.toLowerCase().includes(publisher.toLowerCase()));
+            filterResults = filterResults.filter(hero => hero.Publisher && similarity.compareTwoStrings(publisher.trim(), hero.Publisher.toLowerCase().trim()) > 0.5);
         }
         if (race) {
-            filterResults = filterResults.filter(hero => hero.Race && hero.Race.toLowerCase().includes(race.toLowerCase()));
+            filterResults = filterResults.filter(hero => hero.Race && similarity.compareTwoStrings(race.trim(), hero.Race.toLowerCase().trim()) > 0.5);
         }
 
           const powersResponse = await fetch(`/api/open/superhero_powers`);
