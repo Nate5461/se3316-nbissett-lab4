@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import './App.css';
 import Signup from './signup.js';
 import Login from './login.js';
@@ -10,16 +10,23 @@ import Nav from './Nav.js';
 import ChangePassword from './ChangePassword.js';
 import ListDisplay from './ListDisplay.js';
 import { ResultsContext } from './ResultsContext.js';
+import { SelectedListContext } from './SelectedListContext.js';
 
 
 function App() {
 
   const [results, setResults] = useState([]);
   const [username, setUsername] = useState('');
+  const [selectedList, setSelectedList] = useState(null);
+
+  useEffect(() => {
+    console.log('selectedList changed:', selectedList);
+  }, [selectedList]);
 
   return (
     <UserContext.Provider value={{ username, setUsername }}>
       <ResultsContext.Provider value={{ results, setResults }}>
+      <SelectedListContext.Provider value={{selectedList, setSelectedList }}>
       <Router>
         <Routes>
           <Route path="/login" element={
@@ -42,6 +49,7 @@ function App() {
           } />
         </Routes>
       </Router>
+      </SelectedListContext.Provider>
       </ResultsContext.Provider>
     </UserContext.Provider>
   );

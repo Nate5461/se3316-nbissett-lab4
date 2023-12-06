@@ -117,7 +117,7 @@ function SearchArea({setResults: setResultsProp, selectedItem}) {
         <input type="search" id="race-search" placeholder="Search by race..." onChange={handleInputChange} />
       </div>
     {username && <ListOptions />}
-    {selectedItem === 'public' && <ReviewOptions />}
+    {username && <ReviewOptions />}
     </div>
   );
 }

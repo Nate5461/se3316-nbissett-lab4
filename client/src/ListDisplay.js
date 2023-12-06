@@ -1,16 +1,23 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from './UserContext';
 import ListCard from './ListCard'; // Import the ListCard component
+import { SelectedListContext } from './SelectedListContext';
 import './App.css';
 
 const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
   const [selectedItem, setSelectedItem] = useState('public');
   const [userLists, setUserLists] = useState([]);
   const { username } = useContext(UserContext);
+  const { selectedList, setSelectedList } = useContext(SelectedListContext); // Use useContext here
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
     onSelectedItemChange(item);
+  };
+
+  const handleListClick = (id) => {
+    console.log('handle list click' + id);
+    setSelectedList(id);
   };
 
   useEffect(() => {
@@ -77,9 +84,14 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
             My Lists
           </div>
         )}
+
       </div>
       <div className="list-container">
-        {userLists.map(list => <ListCard key={list._id} list={list} />)}
+      {userLists.map(list => (
+        <div key={list._id} onClick={() => handleListClick(list._id)}>
+          <ListCard list={list} />
+        </div>
+      ))}
       </div>
     </div>
   );
