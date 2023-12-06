@@ -11,13 +11,14 @@ import ChangePassword from './ChangePassword.js';
 import ListDisplay from './ListDisplay.js';
 import { ResultsContext } from './ResultsContext.js';
 import { SelectedListContext } from './SelectedListContext.js';
-
+import { DisplayListContext } from './DisplayListContext.js';
 
 function App() {
 
   const [results, setResults] = useState([]);
   const [username, setUsername] = useState('');
   const [selectedList, setSelectedList] = useState(null);
+  const [displayList, setDisplayList] = useState(null);
 
   useEffect(() => {
     console.log('selectedList changed:', selectedList);
@@ -27,6 +28,7 @@ function App() {
     <UserContext.Provider value={{ username, setUsername }}>
       <ResultsContext.Provider value={{ results, setResults }}>
       <SelectedListContext.Provider value={{selectedList, setSelectedList }}>
+        <DisplayListContext.Provider value={{displayList, setDisplayList }}>
       <Router>
         <Routes>
           <Route path="/login" element={
@@ -49,6 +51,7 @@ function App() {
           } />
         </Routes>
       </Router>
+      </DisplayListContext.Provider>
       </SelectedListContext.Provider>
       </ResultsContext.Provider>
     </UserContext.Provider>

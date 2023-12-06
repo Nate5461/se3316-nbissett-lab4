@@ -27,7 +27,6 @@ function Nav() {
             <a onClick={logout}>Sign Out</a>
             <Link to="/ChangePassword">Change Password</Link>
           </div>
-          <Link to="/ListPage">My Lists</Link>
         </div>
         ) : (
           <>

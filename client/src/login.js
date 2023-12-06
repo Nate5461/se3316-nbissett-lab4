@@ -15,9 +15,17 @@ function Login() {
   const [loginError, setLoginError] = useState(''); // new state variable for login errors
 
   const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    setEmailError(''); // clear error when user starts typing
-  };
+    const value = e.target.value;
+    setEmail(value);
+
+    // Email format validation
+    const emailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (value !== 'admin' && !emailFormat.test(value)) {
+        setEmailError('Invalid email format.');
+    } else {
+        setEmailError(''); // clear error when user starts typing
+    }
+};
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
@@ -64,7 +72,7 @@ function Login() {
         <label>
           Email:
           <input 
-            type="email" 
+            type="text" 
             value={email} 
             onChange={handleEmailChange} 
             required 

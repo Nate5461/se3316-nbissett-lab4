@@ -10,6 +10,11 @@ function ReviewOptions () {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    const confirmReview = window.confirm('Are you sure you want to submit this review?');
+    if (!confirmReview) {
+        return;
+    }
+    
     const token = localStorage.getItem('token');
 
     console.log('select' + selectedList.selectedList);

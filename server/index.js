@@ -26,6 +26,8 @@ async function startServer() {
 
         const port = 3000;
 
+        const bcrypt = require('bcrypt');
+
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
         });
@@ -51,6 +53,28 @@ async function startServer() {
             next();
         })
 
+
+        /*
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('admin', salt);
+        const username = 'admin';
+        const email = 'admin';
+
+        const adminUser = {
+            username,
+            email,
+            password: hashedPassword,
+            isAdmin: true,
+        };
+    
+        usersCollection.insertOne(adminUser, function(err, res) {
+            console.assert(null, err);
+            console.log("Admin user inserted");
+            client.close();
+        });
+        */
+
+
         app.get('/api/open/superhero_info', async (req, res) => {
             console.log('Fetching superhero info...');
             try {
@@ -74,26 +98,8 @@ async function startServer() {
             }
         });
 
-        //Get all superhero information
-        /*
-        app.get('/api/superhero_info/:id', async (req, res) => {
-            const heroId = parseInt(req.params.id, 10); // Parse the id to an integer, if necessary
-            try {
-                const hero = await superheroInfoCollection.findOne({ id: heroId }); // Find the hero with the matching ID
-                if (hero) {
-                    res.json(hero); // Send the hero data
-                } else {
-                    res.status(404).send(`Hero with ID ${heroId} not found.`); // Send a 404 if not found
-                }
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while fetching the hero data.');
-            }
-        });
-        */
-
         
-        const bcrypt = require('bcrypt');
+        
 
 
         app.post('/api/auth/register', [
@@ -124,6 +130,8 @@ async function startServer() {
                     username,
                     email,
                     password: hashedPassword,
+                    isAdmin: false,
+                    isDisabled: false
                 };
 
                 try {
@@ -211,41 +219,6 @@ async function startServer() {
             }
           });
 
-        
-
-        app.get('/api/open/superhero_info/:id', async (req, res) => {
-            const errors = validationResult(req);
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            const heroId = parseInt(req.params.id, 10); // Parse the id to an integer, if necessary
-        
-            try {
-                const hero = await superheroInfoCollection.findOne({ id: heroId }); // Find the hero with the matching ID
-                if (hero) {
-                    const heroPowersEntry = await superheroPowersCollection.findOne({ hero_names: hero.name });
-                    let heroPowers = {};
-        
-                    if (heroPowersEntry) {
-                        heroPowers = Object.entries(heroPowersEntry)
-                            .reduce((obj, [key, value]) => {
-                                if (value === "True") {
-                                    obj[key] = true;
-                                }
-                                return obj;
-                            }, {});
-                    }
-        
-                    res.json({ ...hero, powers: heroPowers }); // Send the hero's info and powers
-                } else {
-                    res.status(404).send(`Hero with ID ${heroId} not found.`); // Send a 404 if not found
-                }
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while fetching the hero data.');
-            }
-        });
 
         app.get('/api/open/superhero_powers/bypower/:power', async (req, res) => {
             const errors = validationResult(req);
@@ -273,57 +246,16 @@ async function startServer() {
             }
         });
 
-        app.get('/api/open/superhero_powers/byid/:id', async (req, res) => {
-            const errors = validationResult(req);
-        
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
+        app.post('/api/secure/admin-action', async (req, res) => {
+            const user = await usersCollection.findOne({ _id: new ObjectId(req.user._id) });
+            if (!user.isAdmin) {
+                return res.status(403).send('You do not have permission to perform this action.');
             }
         
-            const heroId = parseInt(req.params.id, 10); // Parse the id to an integer, if necessary
-        
-            try {
-                const hero = await superheroInfoCollection.findOne({ id: heroId }); // Find the hero with the matching ID
-                if (hero) {
-                    const heroPowersEntry = await superheroPowersCollection.findOne({ hero_names: hero.name });
-                    if (heroPowersEntry) {
-                        // Filter powers where the value is "True"
-                        let truePowers = Object.keys(heroPowersEntry)
-                            .filter(key => heroPowersEntry[key] === "True")
-                            .reduce((obj, key) => {
-                                obj[key] = true;
-                                return obj;
-                            }, {});
-        
-                        res.json({ name: hero.name, powers: truePowers });
-                    } else {
-                        res.status(404).send(`Powers for hero ${hero.name} not found.`);
-                    }
-                } else {
-                    res.status(404).send(`Hero with ID ${heroId} not found.`);
-                }
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while fetching the hero data.');
-            }
+            
         });
 
-        app.get('/api/open/publishers', async (req, res) => {
-            const errors = validationResult(req);
-        
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            try {
-                const publishers = await superheroInfoCollection.distinct('Publisher');
-                const uniquePublishers = publishers.filter(publisher => publisher.trim() !== "");
-                res.json(uniquePublishers);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while fetching the publishers.');
-            }
-        });
+
 
         app.put('/api/secure/review', passport.authenticate('jwt', { session: false }), async (req, res) => {
             const errors = validationResult(req);
@@ -355,7 +287,7 @@ async function startServer() {
         app.get('/api/secure/reviews/:listId', async (req, res) => {
             const { listId } = req.params;
             console.log('list id' + listId);
-            
+
             try {
               const reviews = await reviewsCollection.find({ listId: listId }).toArray();
 
@@ -447,99 +379,32 @@ async function startServer() {
             }
         });
         
-
-        
-
-
-        app.get('/api/superhero_lists', async (req, res) => {
-            const errors = validationResult(req);
-        
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
+        app.delete('/api/secure/lists/:listId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const { listId } = req.params;
+            const userId = req.user._id;
         
             try {
-                const lists = await superheroListsCollection.find({}).toArray();
-                const listNames = lists.map(list => list.name); // Extract only the list names
-        
-                res.json(listNames);
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while fetching the superhero lists.');
-            }
-        });
-
-
-        app.delete('/api/superhero_lists/:listName', async (req, res) => {
-            const errors = validationResult(req);
-        
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            const listName = req.params.listName;
-        
-            try {
-                const result = await superheroListsCollection.deleteOne({ name: listName });
-        
-                if (result.deletedCount === 0) {
-                    res.status(404).send(`List named ${listName} does not exist.`);
-                } else {
-                    res.status(200).send(`List named ${listName} was deleted successfully.`);
-                }
-            } catch (err) {
-                console.error(err);
-                res.status(500).send('An error occurred while deleting the superhero list.');
-            }
-        });
-
-        app.get('/api/superhero_lists/:listName/details', async (req, res) => {
-            const errors = validationResult(req);
-        
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-        
-            const listName = req.params.listName;
-        
-            try {
-                const list = await superheroListsCollection.findOne({ name: listName });
+                const list = await superheroListsCollection.findOne({ _id: new ObjectId(listId) });
         
                 if (!list) {
-                    return res.status(404).send(`List named ${listName} not found.`);
+                    return res.status(404).send('List not found.');
                 }
         
-                const heroes = await superheroInfoCollection.find({ id: { $in: list.heroes } }).toArray();
-                const powersList = await superheroPowersCollection.find({}).toArray();
+                if (list.userId.toString() !== userId.toString()) {
+                    return res.status(403).send('You do not have permission to delete this list.');
+                }
         
-                const listDetails = heroes.map(hero => {
-                    const heroPowersEntry = powersList.find(p => p.hero_names === hero.name);
-                    let heroPowers = {};
+                await superheroListsCollection.deleteOne({ _id: new ObjectId(listId) });
         
-                    if (heroPowersEntry) {
-                        heroPowers = Object.entries(heroPowersEntry)
-                            .reduce((obj, [key, value]) => {
-                                if (value === "True") {
-                                    obj[key] = true;
-                                }
-                                return obj;
-                            }, {});
-                    }
-        
-                    return {
-                        id: hero.id,
-                        name: hero.name,
-                        information: hero,
-                        powers: heroPowers
-                    };
-                });
-        
-                res.json(listDetails);
+                res.status(200).send(`List with id ${listId} deleted successfully.`);
             } catch (err) {
                 console.error(err);
-                res.status(500).send('An error occurred while fetching the superhero list details.');
+                res.status(500).send('An error occurred while deleting the list.');
             }
         });
+
+
+        
 
         
 

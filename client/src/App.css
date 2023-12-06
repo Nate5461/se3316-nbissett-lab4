@@ -89,12 +89,13 @@ header {
 }
 
 
-
 #list-area {
   flex: 1; /* Take up the available space on the left */
   padding: 10px;
   border-right: 1px solid #ddd; /* Add a border between the two columns */
 }
+
+
 
 #display-area { 
     padding: 10px;
@@ -127,6 +128,13 @@ input[type="search"] {
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
 
+
+#selected-list{
+  background-color: blueviolet;
+}
+
+
+
 #list-options > *:not(h1):not(#list-visibility)  {
   padding: 5px;
   margin-right: 5px;
@@ -136,6 +144,7 @@ input[type="search"] {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Shadow for a "raised" effect */
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
 }
+
 
 #visibility {
   width: calc(300px - 120px); /* Subtract the estimated width of the label */
@@ -235,15 +244,6 @@ label[for="rating"] {
 }
 
 
-#search-btn {
-  padding: 5px 10px;
-  width: 280px;
-  border: 1px solid #ddd;
-  border-radius: 5px; /* Rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Shadow for a "raised" effect */
-  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-  color: black;
-}
 
 .form-container {
   display: flex;
@@ -320,10 +320,10 @@ label[for="rating"] {
 }
 
 
-
 .dropdown {
   position: relative;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
 }
 
 .dropdown-content {
@@ -332,7 +332,6 @@ label[for="rating"] {
   min-width: 160px;
   z-index: 1;
 }
-
 
 .dropdown:hover .dropdown-content {
   display: block;
@@ -344,6 +343,7 @@ label[for="rating"] {
   justify-content: space-between;
   align-items: center;
 }
+
 .nav-bar {
   display: flex;
   justify-content: space-around;
@@ -365,4 +365,22 @@ label[for="rating"] {
 .nav-item.selected {
   background-color: #007BFF;
   color: white;
+}
+
+.edit-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+}
+
+.edit-item {
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-item:hover {
+  background-color: #e0e0e0;
 }
