@@ -33,11 +33,18 @@ function logout() {
             </div>
             <Link to="/">Home</Link>
               {isAdmin && <Link to="/admin">Admin Page</Link>}
+              <Link to="/dcmaNT">DCMA Policy</Link>
+              <Link to="/dcmaSP">Privacy Policy</Link>
+              <Link to="/aup">Acceptable Use Policy</Link>
               </div>
           ) : (
             <>
               <Link to="/login">Login</Link>
               <Link to="/signup">Signup</Link>
+              <Link to="/">Home</Link>
+              <Link to="/dcmaNT">DCMA Policy</Link>
+              <Link to="/dcmaSP">Privacy Policy</Link>
+              <Link to="/aup">Acceptable Use Policy</Link>
             </>
           )}
         </div>

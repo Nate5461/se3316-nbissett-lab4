@@ -23,6 +23,7 @@ async function startServer() {
         const superheroListsCollection = client.db('mydb').collection('superheroLists');
         const usersCollection = client.db('mydb').collection('userData');
         const reviewsCollection = client.db('mydb').collection('reviews');
+        const dcmaCollection = client.db('mydb').collection('dcma');
 
         const port = 3000;
 
@@ -75,6 +76,8 @@ async function startServer() {
         */
 
 
+
+
         app.get('/api/open/superhero_info', async (req, res) => {
             console.log('Fetching superhero info...');
             try {
@@ -97,6 +100,88 @@ async function startServer() {
                 res.status(500).send(err);
             }
         });
+
+        app.get('/api/open/dcmaNT', async (req, res) => {
+            console.log('Fetching dcmaNT...')
+            try {
+                const docs = await dcmaCollection.find({ name: 'dcmaNT' }).toArray();
+
+                res.json(docs);
+            } catch (err) {
+                console.error('Error fetching dcmaNT:', err);
+                res.status(500).send(err);
+            }
+        });
+
+        
+
+        app.get('/api/open/dcmaSP', async (req, res) => {
+            console.log('Fetching dcmaSP...')
+            try {
+                const docs = await dcmaCollection.find({ name: 'dcmaSP' }).toArray();
+                console.log(docs);
+                res.json(docs);
+            } catch (err) {
+                console.error('Error fetching dcmaSP:', err);
+                res.status(500).send(err);
+            }
+        });
+
+        app.get('/api/open/aup', async (req, res) => {
+            console.log('Fetching aup...')
+            try {
+                const docs = await dcmaCollection.find({ name: 'aup' }).toArray();
+
+                res.json(docs);
+            } catch (err) {
+                console.error('Error fetching aup:', err);
+                res.status(500).send(err);
+            }
+        });
+
+        app.put('/api/secure/dcmaNT', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const { content } = req.body;
+            console.log('dcmaNT request received');
+
+            try {
+                await dcmaCollection.updateOne({ name: 'dcmaNT' }, { $set: { content: content } });
+
+                res.status(200).json('dcmaNT updated successfully.');
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while updating the dcmaNT.');
+            }
+        });
+
+        app.put('/api/secure/dcmaSP', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const { content } = req.body;
+
+            try {
+                await dcmaCollection.updateOne({ name: 'dcmaSP' }, { $set: { content: content } });
+
+                res.status(200).json('dcmaSP updated successfully.');
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while updating the dcmaSP.');
+            }
+        });
+
+        app.put('/api/secure/aup', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const { content } = req.body;
+
+            try {
+                await dcmaCollection.updateOne({ name: 'aup' }, { $set: { content: content } });
+
+                res.status(200).json('aup updated successfully.');
+            }
+            catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while updating the aup.');
+            }
+        });
+
 
 
         app.get('/api/secure/isAdmin', passport.authenticate('jwt', { session: false }), async (req, res) => {
@@ -221,24 +306,24 @@ async function startServer() {
         // Use passport.authenticate middleware in your routes
         app.post('/api/auth/signin', (req, res, next) => {
             passport.authenticate('local', { session: false }, (err, user, info) => {
-              if (err) {
-                return next(err);
-              }
-          
-              if (!user) {
-                return res.status(401).json({ message: info.message });
-              }
-          
-              req.login(user, { session: false }, (err) => {
                 if (err) {
-                  return next(err);
+                    return next(err);
                 }
-          
-                const token = jwt.sign({ sub: req.user._id, username: req.user.username }, 'your-secret-key', { expiresIn: '1h' });
-                return res.json({ token });
-              });
+
+                if (!user) {
+                    return res.status(401).json({ message: info.message });
+                }
+
+                req.login(user, { session: false }, (err) => {
+                    if (err) {
+                        return next(err);
+                    }
+
+                    const token = jwt.sign({ sub: req.user._id, username: req.user.username }, 'your-secret-key', { expiresIn: '1h' });
+                    return res.json({ token });
+                });
             })(req, res, next);
-          });
+        });
 
         app.post('/api/auth/change', passport.authenticate('jwt', { session: false }), async (req, res) => {
             console.log('Change password request received');

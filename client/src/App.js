@@ -73,6 +73,42 @@ function App() {
                       <Login />
                     </>
                   } />
+                  <Route path="/dcmaNT" element={
+                    <>
+                      <Header />
+                      <DCMANT />
+                    </>
+                  } />
+                  <Route path="/dcmaSP" element={
+                    <>
+                      <Header />
+                      <DCMASP />
+                    </>
+                  } />
+                  <Route path="/aup" element={
+                    <>
+                      <Header />
+                      <AUP />
+                    </>
+                  } />
+                  <Route path="/dcmaNT/edit" element={
+                    <>
+                      <Header />
+                      <DCMANTEdit />
+                    </>
+                  } />
+                  <Route path="/dcmaSP/edit" element={
+                    <>
+                      <Header />
+                      <DCMASPEdit />
+                    </>
+                  } />
+                  <Route path="/aup/edit" element={
+                    <>
+                      <Header />
+                      <AUPEdit />
+                    </>
+                  } />
                   <Route path="/admin" element={
                     <>
                       <Header />
@@ -97,6 +133,195 @@ function App() {
         </SelectedListContext.Provider>
       </ResultsContext.Provider>
     </UserContext.Provider>
+  );
+}
+
+function DCMANT() {
+  const { isAdmin } = useContext(AdminContext);
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    console.log('Fetching data from /api/open/dcmaNT'); // Added console.log
+    fetch('/api/open/dcmaNT')
+      .then(response => {
+        return response.json();
+      })
+      .then(data => {
+        setContent(data[0].content);
+      })
+      .catch(error => {
+        console.log('Error:', error); // Added console.log
+      });
+  }, []);
+
+  return (
+    <div>
+      {isAdmin && <Link to="/dcmaNT/edit">Edit</Link>}
+      <p>{content}</p>
+    </div>
+  );
+}
+
+function DCMANTEdit() {
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    fetch('/api/open/dcmaNT')
+      .then(response => response.json())
+      .then(data => setContent(data[0].content))
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+  
+    const token = localStorage.getItem('token');
+
+    fetch('/api/secure/dcmaNT', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify( { content: content} ),
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response data
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea value={content} onChange={e => setContent(e.target.value)} />
+      <button type="submit">Save</button>
+    </form>
+  );
+}
+
+function DCMASP() {
+  const { isAdmin } = useContext(AdminContext);
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    fetch('/api/open/dcmaSP')
+      .then(response => response.json())
+      .then(data => setContent(data[0].content))
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  return (
+    <div>
+      {isAdmin && <Link to="/dcmaSP/edit">Edit</Link>}
+      <p>{content}</p>
+    </div>
+  );
+}
+
+function DCMASPEdit() {
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    fetch('/api/open/dcmaSP')
+      .then(response => response.json())
+      .then(data => setContent(data[0].content))
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+  
+    const token = localStorage.getItem('token');
+
+    fetch('/api/secure/dcmaSP', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ content: content }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response data
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea value={content} onChange={e => setContent(e.target.value)} />
+      <button type="submit">Save</button>
+    </form>
+  );
+}
+
+
+
+function AUP() {
+  const { isAdmin } = useContext(AdminContext);
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    fetch('/api/open/aup')
+      .then(response => response.json())
+      .then(data => setContent(data[0].content))
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  return (
+    <div>
+      {isAdmin && <Link to="/aup/edit">Edit</Link>}
+      <p>{content}</p>
+    </div>
+  );
+}
+
+function AUPEdit() {
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    fetch('/api/open/aup')
+      .then(response => response.json())
+      .then(data => setContent(data[0].content))
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+  
+    const token = localStorage.getItem('token');
+
+    fetch('/api/secure/aup', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ content: content }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Handle the response data
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <textarea value={content} onChange={e => setContent(e.target.value)} />
+      <button type="submit">Save</button>
+    </form>
   );
 }
 

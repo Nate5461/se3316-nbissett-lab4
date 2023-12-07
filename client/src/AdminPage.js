@@ -57,7 +57,7 @@ const AdminPage = () => {
         })
         .catch(error => console.error('There has been a problem with your fetch operation: ', error.message));
       };
-      
+
 
     const toggleActive = id => {
         const token = localStorage.getItem('token');
@@ -161,6 +161,8 @@ const AdminPage = () => {
                     ))}
                 </ul>
             </div>
+
+            
         </div>
     );
 };
