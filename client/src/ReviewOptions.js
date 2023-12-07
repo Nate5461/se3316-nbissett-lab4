@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import './App.css';
 import { SelectedListContext } from './SelectedListContext';
+import { jwtDecode } from "jwt-decode";
 
 function ReviewOptions () {
   const [rating, setRating] = useState(1);
@@ -16,6 +17,8 @@ function ReviewOptions () {
     }
     
     const token = localStorage.getItem('token');
+    const decodedToken = jwtDecode(token);
+    const username = decodedToken.username;
 
     console.log('select' + selectedList.selectedList);
     const response = await fetch('/api/secure/review', {
@@ -25,8 +28,8 @@ function ReviewOptions () {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
       body: JSON.stringify({
-        listid: selectedList.selectedList, // Replace with actual list id
-        username: token.username, // Replace with actual username
+        listid: selectedList.selectedList, 
+        username: username, 
         stars: rating,
         comment: review
       })

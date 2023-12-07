@@ -49,22 +49,24 @@ function Login() {
       },
       body: JSON.stringify({ email, password }),
     });
-  
+    
     const data = await response.json();
-  
+    
     if (response.ok) {
-      console.log('Token:', data.token);
+      
       localStorage.setItem('token', data.token); // store token in local storage
       const decodedToken = jwtDecode(data.token);
       const username = decodedToken.username;
       setGlobalUsername(username);
       console.log('Username:', username);
       navigate('/');
+    } else if (response.status === 401) {
+      setLoginError('Your account is deactivated. Please contact the admin.'); // set login error if account is deactivated
     } else {
-      console.error('Login failed:');
       setLoginError('Incorrect login. Please try again.'); // set login error if login fails
     }
-  };
+  }
+
 
   return (
     <div className="form-container">

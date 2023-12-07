@@ -16,7 +16,7 @@ function ListCard({ list }) {
     const fetchReviews = async () => {
       console.log('Fetching reviews for list', list._id);
 
-      const response = await fetch(`/api/secure/reviews/${list._id}`);
+      const response = await fetch(`/api/open/reviews/${list._id}`);
 
       if (response.ok) {
         const data = await response.json();

@@ -38,7 +38,7 @@ async function startServer() {
 
         app.use(passport.initialize());
 
-        app.use(express.json({ limit: '1mb' })); 
+        app.use(express.json({ limit: '1mb' }));
 
         const { body, validationResult } = require('express-validator');
 
@@ -90,7 +90,7 @@ async function startServer() {
             console.log('Fetching superhero powers...')
             try {
                 const docs = await superheroPowersCollection.find().toArray();
-                
+
                 res.json(docs);
             } catch (err) {
                 console.error('Error fetching superhero powers:', err);
@@ -98,8 +98,35 @@ async function startServer() {
             }
         });
 
-        
-        
+
+        app.get('/api/secure/isAdmin', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const user = await usersCollection.findOne({ _id: new ObjectId(req.user._id) });
+
+            if (!user) {
+                return res.status(401).send('User not found.');
+            }
+
+            res.status(200).json({ isAdmin: user.isAdmin });
+        });
+
+
+        //Get user info
+        app.get('/api/secure/users', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const user = await usersCollection.findOne({ _id: new ObjectId(req.user._id) });
+
+
+            if (!user.isAdmin) {
+                return res.status(403).send('You do not have permission to perform this action.');
+            }
+
+            try {
+                const users = await usersCollection.find().toArray();
+                res.status(200).json(users);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while retrieving the users.');
+            }
+        });
 
 
         app.post('/api/auth/register', [
@@ -138,10 +165,10 @@ async function startServer() {
                     // Insert the new user into the database
                     const result = await usersCollection.insertOne(newUser);
                     res.status(201).json({ message: 'User registered successfully' });
-                  } catch (error) {
+                } catch (error) {
                     console.error(error);
                     res.status(500).json({ message: 'Failed to register user' });
-                  }
+                }
             } catch (err) {
                 console.error(err);
                 res.status(500).send('An error occurred while registering the user');
@@ -154,24 +181,27 @@ async function startServer() {
                 if (!user) {
                     return done(null, false, { message: 'Invalid username or password' });
                 }
-        
+
+                if (user.isDisabled) {
+                    return done(null, false, { message: 'Your account is disabled' });
+                }
+
                 const isPasswordValid = await bcrypt.compare(password, user.password);
                 if (!isPasswordValid) {
                     return done(null, false, { message: 'Invalid username or password' });
                 }
-        
+
                 return done(null, user);
             } catch (err) {
                 return done(err);
             }
         }));
-        
 
         const jwtOptions = {
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             secretOrKey: 'your-secret-key'
         };
-        
+
         passport.use(new JwtStrategy(jwtOptions, async (jwtPayload, done) => {
             try {
                 const user = await usersCollection.findOne({ _id: new ObjectId(jwtPayload.sub) });
@@ -185,60 +215,76 @@ async function startServer() {
             }
         }));
 
-        
 
-        
+
+
         // Use passport.authenticate middleware in your routes
-        app.post('/api/auth/signin', passport.authenticate('local', { session: false }), (req, res) => {
-            const token = jwt.sign({ sub: req.user._id, username: req.user.username }, 'your-secret-key', { expiresIn: '1h' });
-            res.json({ token });
-        });
+        app.post('/api/auth/signin', (req, res, next) => {
+            passport.authenticate('local', { session: false }, (err, user, info) => {
+              if (err) {
+                return next(err);
+              }
+          
+              if (!user) {
+                return res.status(401).json({ message: info.message });
+              }
+          
+              req.login(user, { session: false }, (err) => {
+                if (err) {
+                  return next(err);
+                }
+          
+                const token = jwt.sign({ sub: req.user._id, username: req.user.username }, 'your-secret-key', { expiresIn: '1h' });
+                return res.json({ token });
+              });
+            })(req, res, next);
+          });
 
         app.post('/api/auth/change', passport.authenticate('jwt', { session: false }), async (req, res) => {
             console.log('Change password request received');
-            
+
             const { oldPassword, newPassword } = req.body;
-          
+
             try {
-              // Verify the old password
-              const isPasswordValid = await bcrypt.compare(oldPassword, req.user.password);
-              if (!isPasswordValid) {
-                return res.status(400).json({ message: 'Invalid old password' });
-              }
-          
-              // Hash the new password
-              const salt = await bcrypt.genSalt(10);
-              const hashedPassword = await bcrypt.hash(newPassword, salt);
-          
-              // Update the user's password in the database
-              await usersCollection.updateOne({ _id: req.user._id }, { $set: { password: hashedPassword } });
-          
-              res.json({ message: 'Password changed successfully' });
+                // Verify the old password
+                const isPasswordValid = await bcrypt.compare(oldPassword, req.user.password);
+                if (!isPasswordValid) {
+                    return res.status(400).json({ message: 'Invalid old password' });
+                }
+
+                // Hash the new password
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+                // Update the user's password in the database
+                await usersCollection.updateOne({ _id: req.user._id }, { $set: { password: hashedPassword } });
+
+                res.json({ message: 'Password changed successfully' });
             } catch (err) {
-              res.status(500).send('An error occurred while changing the password');
+                res.status(500).send('An error occurred while changing the password');
             }
-          });
+        });
 
 
         app.get('/api/open/superhero_powers/bypower/:power', async (req, res) => {
             const errors = validationResult(req);
-        
+
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
-        
+
             const searchPower = req.params.power.toLowerCase();
-        
+
             try {
                 const heroesWithPower = await superheroPowersCollection.find({}).toArray();
                 const heroNames = heroesWithPower
                     .filter(hero => Object.keys(hero).some(key => key.toLowerCase().includes(searchPower) && hero[key] === "True"))
                     .map(hero => hero.hero_names); // Get hero names
-        
+
                 if (heroNames.length === 0) {
                     return res.status(404).send('No heroes found with that power.');
                 }
-        
+
                 res.json(heroNames);
             } catch (err) {
                 console.error('Error fetching heroes:', err);
@@ -246,72 +292,148 @@ async function startServer() {
             }
         });
 
-        app.post('/api/secure/admin-action', async (req, res) => {
-            const user = await usersCollection.findOne({ _id: new ObjectId(req.user._id) });
-            if (!user.isAdmin) {
-                return res.status(403).send('You do not have permission to perform this action.');
+        app.put('/api/secure/review/toggle/:reviewId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const reviewId = req.params.reviewId;
+
+            try {
+                const review = await reviewsCollection.findOne({ _id: new ObjectId(reviewId) });
+                if (!review) {
+                    return res.status(404).json({ message: 'Review not found' });
+                }
+
+                const updatedReview = await reviewsCollection.findOneAndUpdate(
+                    { _id: new ObjectId(reviewId) },
+                    { $set: { hidden: !review.hidden } },
+                    { returnOriginal: false }
+                );
+
+                res.json(updatedReview.value);
+            } catch (err) {
+                console.error('Error toggling review hidden value:', err);
+                res.status(500).send('An error occurred while toggling the review hidden value.');
             }
-        
-            
         });
 
 
 
         app.put('/api/secure/review', passport.authenticate('jwt', { session: false }), async (req, res) => {
             const errors = validationResult(req);
-        
+
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
-        
+
             const { listid, username, stars, comment } = req.body;
             const userId = req.user._id;
             const timestamp = new Date();
             try {
-                    await reviewsCollection.insertOne({ 
-                        listId: listid,
-                        userId: userId,
-                        username: username,
-                        stars: stars,
-                        comment: comment,
-                        timestamp: timestamp,
-                        hidden: false});
+                await reviewsCollection.insertOne({
+                    listId: listid,
+                    userId: userId,
+                    username: username,
+                    stars: stars,
+                    comment: comment,
+                    timestamp: timestamp,
+                    hidden: false
+                });
 
-                    res.status(201).json('Review created successfully.' );
-                }
+                res.status(201).json('Review created successfully.');
+            }
             catch (err) {
                 console.error(err);
                 res.status(500).send('An error occurred while updating the review.');
             }
         });
 
-          //Get average rating for a list
-          app.get('/api/secure/reviews/:listId', async (req, res) => {
-            const { listId } = req.params;
-        
+        //get reviews for admin list
+        app.get('/api/secure/reviews', passport.authenticate('jwt', { session: false }), async (req, res) => {
 
             try {
-              const reviews = await reviewsCollection.find({ listId: listId }).toArray();
+                const reviews = await reviewsCollection.find().toArray();
 
-                
-              const averageRating = reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length;
-                
-              res.status(200).json({ reviews, averageRating });
+                res.status(200).json(reviews);
             } catch (err) {
-              console.error(err);
-              res.status(500).send('An error occurred while fetching the reviews.');
+                console.error(err);
+                res.status(500).send('An error occurred while retrieving the user reviews.');
             }
-          });
-        
+        });
+
+        //toggles the isdisabled field for a user
+        app.put('/api/secure/users/:userId/toggle-deactivated', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const { userId } = req.params;
+
+            try {
+                const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+                if (!user) {
+                    return res.status(404).send('User not found.');
+                }
+
+                const updatedUser = await usersCollection.findOneAndUpdate(
+                    { _id: new ObjectId(userId) },
+                    { $set: { isDisabled: !user.isDisabled } },
+                    { returnOriginal: false }
+                );
+
+                res.status(200).json(updatedUser.value);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while toggling the user account status.');
+            }
+        });
+
+        // Toggles the isAdmin field for a user
+        app.put('/api/secure/users/:userId/toggle-admin', passport.authenticate('jwt', { session: false }), async (req, res) => {
+            const { userId } = req.params;
+
+            try {
+                const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+                if (!user) {
+                    return res.status(404).send('User not found.');
+                }
+
+                const updatedUser = await usersCollection.findOneAndUpdate(
+                    { _id: new ObjectId(userId) },
+                    { $set: { isAdmin: !user.isAdmin } },
+                    { returnOriginal: false }
+                );
+
+                res.status(200).json(updatedUser.value);
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while toggling the user admin status.');
+            }
+        });
+
+
+        //Get average rating for a list
+        app.get('/api/open/reviews/:listId', async (req, res) => {
+            const { listId } = req.params;
+
+
+            try {
+                const reviews = await reviewsCollection.find({ listId: listId, hidden: false }).toArray();
+
+
+                const averageRating = reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length;
+
+                res.status(200).json({ reviews, averageRating });
+            } catch (err) {
+                console.error(err);
+                res.status(500).send('An error occurred while fetching the reviews.');
+            }
+        });
+
 
         app.get('/api/secure/lists', passport.authenticate('jwt', { session: false }), async (req, res) => {
             const userId = req.user._id;
-        
+
             try {
                 const userLists = await superheroListsCollection
                     .find({ userId: new ObjectId(userId) })
                     .toArray();
-        
+
                 res.status(200).json(userLists);
             } catch (err) {
                 console.error(err);
@@ -325,13 +447,13 @@ async function startServer() {
 
             console.log('working, id' + req.user._id);
             const errors = validationResult(req);
-        
+
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
-        
+
             const { listname, description, visibility, heroes } = req.body;
-        
+
             // Extract userId from the authenticated user
             const userId = req.user._id;
             const username = req.user.username;
@@ -339,12 +461,12 @@ async function startServer() {
             try {
                 // Check if a list with the same name already exists for the user
                 const existingList = await superheroListsCollection.findOne({ listname, userId });
-        
+
                 if (existingList) {
                     console.log('List already exists');
                     return res.status(409).send(`The list named "${listname}" already exists.`);
                 }
-        
+
                 // If the list name does not exist, create a new list
                 const newList = {
                     listname,
@@ -355,9 +477,9 @@ async function startServer() {
                     userId, // Add the userId to the list
                     username
                 };
-        
+
                 await superheroListsCollection.insertOne(newList);
-        
+
                 res.status(201).json({ message: `New list named "${listname}" created successfully.`, list: newList });
             } catch (err) {
                 console.error(err);
@@ -379,24 +501,24 @@ async function startServer() {
                 res.status(500).send('An error occurred while retrieving the public lists.');
             }
         });
-        
+
         app.delete('/api/secure/lists/:listId', passport.authenticate('jwt', { session: false }), async (req, res) => {
             const { listId } = req.params;
             const userId = req.user._id;
-        
+
             try {
                 const list = await superheroListsCollection.findOne({ _id: new ObjectId(listId) });
-        
+
                 if (!list) {
                     return res.status(404).send('List not found.');
                 }
-        
+
                 if (list.userId.toString() !== userId.toString()) {
                     return res.status(403).send('You do not have permission to delete this list.');
                 }
-        
+
                 await superheroListsCollection.deleteOne({ _id: new ObjectId(listId) });
-        
+
                 res.status(200).send(`List with id ${listId} deleted successfully.`);
             } catch (err) {
                 console.error(err);
@@ -405,14 +527,14 @@ async function startServer() {
         });
 
 
-        
 
-        
+
+
 
         //app.use(limiter);
-        } catch (err) {
-            console.error('Could not connect to MongoDB', err);
-        }
+    } catch (err) {
+        console.error('Could not connect to MongoDB', err);
+    }
 }
 
 startServer();
