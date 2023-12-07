@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import './App.css';
 import { ResultsContext } from './ResultsContext';
+import { DisplayListContext } from './DisplayListContext';
 
 
 function ListOptions() {
@@ -10,6 +11,7 @@ function ListOptions() {
     const [listnameError, setListnameError] = useState('');
     const [heroError, setHeroError] = useState('');
     const [visibility, setVisibility] = useState('private');
+    const { displayList, setDisplayList } = useContext(DisplayListContext);
 
     const handleListnameChange = (e) => {
         setListname(e.target.value);

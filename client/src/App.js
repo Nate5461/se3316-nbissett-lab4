@@ -18,12 +18,13 @@ function App() {
   const [results, setResults] = useState([]);
   const [username, setUsername] = useState('');
   const [selectedList, setSelectedList] = useState(null);
-  const [displayList, setDisplayList] = useState(null);
+  const [displayList, setDisplayList] = useState([]);
 
   useEffect(() => {
     console.log('selectedList changed:', selectedList);
   }, [selectedList]);
 
+  
   return (
     <UserContext.Provider value={{ username, setUsername }}>
       <ResultsContext.Provider value={{ results, setResults }}>
@@ -67,11 +68,6 @@ function Header() {
 } 
 
 
-
-
-
-
-
 function SplitContainer({ setResults, results }) {
   const [selectedItem, setSelectedItem] = useState('public');
 
@@ -96,7 +92,6 @@ function SplitContainer({ setResults, results }) {
 
 
 function DisplayArea({ results }) {
-  console.log('runs display area' + results);
   return (
     <div className="results-container">
       {results.map((hero, index) => (

@@ -274,7 +274,8 @@ async function startServer() {
                         username: username,
                         stars: stars,
                         comment: comment,
-                        timestamp: timestamp});
+                        timestamp: timestamp,
+                        hidden: false});
 
                     res.status(201).json('Review created successfully.' );
                 }
@@ -284,16 +285,17 @@ async function startServer() {
             }
         });
 
-        app.get('/api/secure/reviews/:listId', async (req, res) => {
+          //Get average rating for a list
+          app.get('/api/secure/reviews/:listId', async (req, res) => {
             const { listId } = req.params;
-            console.log('list id' + listId);
+        
 
             try {
               const reviews = await reviewsCollection.find({ listId: listId }).toArray();
 
-                console.log('reviews found' + JSON.stringify(reviews));
+                
               const averageRating = reviews.reduce((sum, review) => sum + review.stars, 0) / reviews.length;
-                console.log('ran' + averageRating);
+                
               res.status(200).json({ reviews, averageRating });
             } catch (err) {
               console.error(err);
@@ -334,7 +336,6 @@ async function startServer() {
             const userId = req.user._id;
             const username = req.user.username;
 
-            console.log('data' + listname + description + visibility + heroes + userId);
             try {
                 // Check if a list with the same name already exists for the user
                 const existingList = await superheroListsCollection.findOne({ listname, userId });

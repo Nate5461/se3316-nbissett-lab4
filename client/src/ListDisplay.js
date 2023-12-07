@@ -2,13 +2,16 @@ import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from './UserContext';
 import ListCard from './ListCard'; // Import the ListCard component
 import { SelectedListContext } from './SelectedListContext';
+import { DisplayListContext } from './DisplayListContext';
 import './App.css';
+
 
 const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
   const [selectedItem, setSelectedItem] = useState('public');
   const [userLists, setUserLists] = useState([]);
   const { username } = useContext(UserContext);
   const { selectedList, setSelectedList } = useContext(SelectedListContext); 
+  const { displayList, setDisplayList } = useContext(DisplayListContext);
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
@@ -22,7 +25,7 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
 
   const handleDeleteClick = (id) => {
 
-    const confirmDelete = window.confirm('Are you sure you want to submit this review?');
+    const confirmDelete = window.confirm('Are you sure you want to delete this list?');
 
     if (!confirmDelete) {
         return;
@@ -41,20 +44,7 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
           console.log('Raw response:', response);
           return response.json();
         })
-        .then(data => {
-          // Remove the deleted list from userLists
-          const updatedLists = userLists.filter(list => list._id !== id);
-          setUserLists(updatedLists);
-
-          console.log('updated lists', updatedLists);
-
-          if (updatedLists.length > 0) {
-            setSelectedList(updatedLists[0]._id);
-          } else {
-            setSelectedList(null);
-          }
-  
-        })
+        .then(setDisplayList)
         .catch(console.error);
     
 
@@ -74,29 +64,9 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
         console.log('Raw response:', response);
         return response.json();
       })
-      .then(setUserLists)
+      .then()
       .catch(console.error);
   }
-
-  useEffect(() => {
-    if (selectedItem === 'mylists') {
-      // Get the JWT from wherever you're storing it
-      const token = localStorage.getItem('token');
-
-      // Call the endpoint
-      fetch('/api/secure/lists', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(response => {
-          console.log('Raw response:', response);
-          return response.json();
-        })
-        .then(setUserLists)
-        .catch(console.error);
-    }
-  }, [selectedItem]);
 
   useEffect(() => {
     let endpoint;
@@ -119,10 +89,10 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
           }
           return response.json();
         })
-        .then(setUserLists)
+        .then(setDisplayList)
         .catch(console.error);
     }
-  }, [selectedItem]);
+  }, [selectedItem, displayList]);
 
 
   return (
@@ -155,7 +125,7 @@ const ListDisplay = ({ signedIn, onSelectedItemChange }) => {
       </div>
 
       <div className="list-container">
-        {userLists.map(list => (
+        {displayList.map(list => (
           <div  key={list._id} onClick={() => handleListClick(list._id)}>
             <ListCard list={list} handleDeleteClick= {handleDeleteClick}/>
           </div>
