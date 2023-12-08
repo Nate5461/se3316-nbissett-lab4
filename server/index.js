@@ -5,7 +5,7 @@ app.use(express.json());
 
 const { MongoClient, ObjectId } = require('mongodb');
 
-const client = new MongoClient('mongodb://127.0.0.1:27017');
+const client = new MongoClient('mongodb://localhost:27017');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
